@@ -26,52 +26,61 @@ public class Search {
         while(!(openList.isEmpty())){
 
             Node currentNode = openList.poll();
+
+            System.out.println("|Parent Node|"); // DEBUG
+            currentNode.toStringMap(); // DEBUG
+            currentNode.toStringInfo();
+            System.out.println("current node pulled from open list"); // DEBUG
+
             ArrayList<Node> successors = currentNode.generateSuccessors(rules, currentNode);
 
-            // DEBUG
-            for(int i = 0; i < successors.size(); i++){
-                System.out.println("successor count: " + successors.size());
-                successors.get(i).toStringMap();
-                successors.get(i).toStringInfo();                
-            }
-
-            int x = 1;
-            if(x == 1)
-                return null;
-
-            //
+            System.out.println("\n|successors generated|\n"); // DEBUG
 
             for(int i = 0; i < successors.size(); i++){
 
                 Node currentSuccessor = successors.get(i);
 
+                System.out.println("\n|successor node #" + (i+1) + "|"); // DEBUG
+                currentSuccessor.toStringMap(); // DEBUG
+                //currentSuccessor.toStringInfo(); // DEBUG
+                
+
                 if(currentSuccessor.isGoal()){
                     actionList = backtrackPath(currentSuccessor, closedList);
                     return actionList;
                 }
+                System.out.println("successor node #" + (i+1) + " is not goal"); // DEBUG
                 
-                if(evaluateSuccessor(currentNode, currentSuccessor))
+                if(evaluateSuccessor(currentNode, currentSuccessor)){
                     openList.add(currentSuccessor);
-
+                    System.out.println("successor node added to open list"); // DEBUG
+                }
+                else{ // DEBUG
+                    System.out.println("successor node NOT added to open list"); // DEBUG
+                }
+                
             }
 
             closedList.put(currentNode.getIdentifier(), currentNode);
+            System.out.println("current node added to closed list"); // DEBUG
+            
         }
         
         return actionList;
     }
 
+    // TODO there seems to be an issue here
     private boolean evaluateSuccessor(Node parentNode, Node successorNode){
 
         int successorIdentifier = successorNode.getIdentifier();
-
         boolean shouldAdd = true;
 
         PriorityQueue<Node> openListClone = new PriorityQueue<Node>(openList);
     
         // if successor already in openList && openList node w/ same identifier < successor identifier
         for(int i = 0; i < openListClone.size(); i++){
-            if(openList.poll().getFCost() < successorNode.getFCost())
+            Node nodeCopy = openListClone.poll();
+            if(nodeCopy.getFCost() < successorNode.getFCost() && nodeCopy.getIdentifier() == successorNode.getIdentifier())
                 shouldAdd = false;
         }
 
@@ -82,6 +91,7 @@ public class Search {
         return shouldAdd;
     }
 
+    // TODO back track doesnt work
     public String backtrackPath(Node goalNode, Map<Integer, Node> closedList) {
         StringBuilder actions = new StringBuilder();
         Node currentNode = goalNode;
@@ -92,9 +102,15 @@ public class Search {
                 actions.insert(0, currentNode.getActionUsed());
             }
             int parentIdentifier = currentNode.getParentIdentifier();
+    
+            System.out.println("Current Node Identifier: " + currentNode.getIdentifier());
+            System.out.println("Parent Identifier: " + parentIdentifier);
+    
             currentNode = closedList.get(parentIdentifier);
         }
     
+        System.out.println("Path: " + actions.toString());
         return actions.toString();
     }
+    
 }

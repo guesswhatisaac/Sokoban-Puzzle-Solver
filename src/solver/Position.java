@@ -11,33 +11,23 @@ public class Position {
     int x;
     int y;
 
-    // FIX LOGIC 
     public Position(int xInput, int yInput){
         this.x = xInput;
         this.y = yInput;
     }
 
-    public int getX(){
-        return this.x;
-    }
-
-    public int getY(){
+    public int getX(){ // Reversed due to board logic
         return this.y;
     }
 
-    public void updateX(int value){
-        this.x += value;
+    public int getY(){ // Reversed due to board logic
+        return this.x;
     }
-
-    public void updateY(int value){
-        this.y += value;
-    }
-
 
     // compares if positions are equal or not
-    public boolean isEqual(Position object){
-
-        if(this.x == object.getX() && this.y == object.getY()){
+    public boolean isEqual(Position object){ // Reversed due to board logic
+ 
+        if(this.x == object.getY() && this.y == object.getX()){
             return true;
         }
         else{
@@ -56,8 +46,8 @@ public class Position {
         }
     }
 
-    public void toStringInfo(){
-        System.out.println("("+ x + ","+ y +")");
+    public void toStringInfo(){ 
+        System.out.println("Pos: " + "("+ y + ","+ x +")");
     }
 
 }

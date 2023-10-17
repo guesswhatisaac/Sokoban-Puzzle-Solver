@@ -32,16 +32,15 @@ public class Node implements Comparable<Node> {
    public Node(int width, int height, char[][] itemsData, char[][] mapData, int parentIdentifier,
                int previousGCost, char actionUsed){
       
-      // plot itemsData & mapData coordinates 
-      // i and j are reversed ie. i is y and j is x, but i fixed it in position class
+      // plot itemsData & mapData coordinates
       for(int i = 0; i < height; i++){
          for(int j = 0; j < width; j++){
 
-            Position position = new Position(j, i);
+            Position position = new Position(j, i); // i and j reversed due to nested loop logic
               
                switch (itemsData[i][j]) {
                   case '@' :
-                     player = position; break;
+                     player = new Position(j, i); break;
                   case '$' :
                      crate.add(position); break;
                }
@@ -86,11 +85,12 @@ public class Node implements Comparable<Node> {
 
       for(int i = 0; i < target.size(); i++){
 
-         int crateX = crate.get(i).getX();
-         int crateY = crate.get(i).getY();
+         // reversed due to board logic
+         int crateX = crate.get(i).getY();
+         int crateY = crate.get(i).getX();
 
-         int targetX = target.get(i).getX();
-         int targetY = target.get(i).getY();
+         int targetX = target.get(i).getY();
+         int targetY = target.get(i).getX();
 
          heuristicValue += Math.abs(crateX - targetX) + Math.abs(crateY - targetY); 
       
@@ -105,34 +105,27 @@ public class Node implements Comparable<Node> {
       ArrayList<Node> possibleSuccessors = new ArrayList<Node>();
 
       // player moves up
-      if(rules.isValidPlayerMovement('u', player, mapData, itemsData)){
+      if(rules.isValidPlayerMovement('u', parentNode.getPlayer(), parentNode.getMapData(), parentNode.getItemsData())){
          Node updatedNode = rules.updatedNode('u', parentNode);
          possibleSuccessors.add(updatedNode);
-
-         System.out.println("UP"); // DEBUG
       } 
 
       // player moves down 
-      if(rules.isValidPlayerMovement('d', player, mapData, itemsData)){
+      if(rules.isValidPlayerMovement('d', parentNode.getPlayer(), parentNode.getMapData(), parentNode.getItemsData())){
          Node updatedNode = rules.updatedNode('d', parentNode);
          possibleSuccessors.add(updatedNode);
-         
-         System.out.println("DOWN"); // DEBUG
       } 
 
       // player moves left
-      if(rules.isValidPlayerMovement('l', player, mapData, itemsData)){
+      if(rules.isValidPlayerMovement('l', parentNode.getPlayer(), parentNode.getMapData(), parentNode.getItemsData())){
          Node updatedNode = rules.updatedNode('l', parentNode);
          possibleSuccessors.add(updatedNode);
-
-         System.out.println("LEFT"); // DEBUG
       }
-      
+
       // player moves right
-      if(rules.isValidPlayerMovement('r', player, mapData, itemsData)){
+      if(rules.isValidPlayerMovement('r', parentNode.getPlayer(), parentNode.getMapData(), parentNode.getItemsData())){
          Node updatedNode = rules.updatedNode('r', parentNode);
          possibleSuccessors.add(updatedNode);
-         System.out.println("RIGHT"); // DEBUG
       }
 
       return possibleSuccessors;
@@ -219,33 +212,48 @@ public class Node implements Comparable<Node> {
       return this.width;
    }
 
-   public char[][] getItemsData(){
-      return this.itemsData;
-   }
-
-   public char[][] getMapData(){
-      return this.mapData;
-   }
+   public char[][] getItemsData() {
+      char[][] cloneItemsData = new char[height][width];
+      for (int i = 0; i < itemsData.length; i++) {
+          cloneItemsData[i] = itemsData[i].clone();
+      }
+      return cloneItemsData;
+  }
+  
+  public char[][] getMapData() {
+      char[][] cloneMapData = new char[height][width];
+      for (int i = 0; i < mapData.length; i++) {
+          cloneMapData[i] = mapData[i].clone();
+      }
+      return cloneMapData;
+  }
 
    public void toStringInfo() {
 
     System.out.println("Action Used: " + actionUsed);
-    System.out.println("Player Position: " + "(" + player.getX() + "," + player.getY() +")");
+    System.out.print("Player: " + "(" + player.getX() + "," + player.getY() +")");
     
-    System.out.println("Crate Positions");
+    System.out.print(" | Crates ");
     for(int i = 0; i < crate.size(); i++){
-      System.out.println("Crate #" + (i+1) + ": " + "(" + crate.get(i).getX() + "," + crate.get(i).getY()+ ")");
+      System.out.print("#" + (i+1) + ": " + "(" + crate.get(i).getX() + "," + crate.get(i).getY()+ ")");
+      System.out.print(" , ");
     }
+    System.out.println("\nfCost: " + this.fCost);
+    System.out.println("ID: " + getIdentifier());
+    System.out.println();
 
    }
 
    public void toStringMap(){
+
+      System.out.println("\n");
       for(int i = 0; i < height; i++){
          for(int j = 0; j < width; j++){
             System.out.print(itemsData[i][j]);
          }
          System.out.println();
       }
+
    }
 
 }
