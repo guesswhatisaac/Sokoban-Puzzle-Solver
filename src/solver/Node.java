@@ -3,7 +3,6 @@ package solver;
 import java.util.ArrayList;
 
 /* Notes
- * - COLLISION DOES NOT AFFECT ITEM AND MAP DATA!
  * - to improve memory usage and since mapdata is constant, maybe it's best to store only itemData
  * - use hash sets instead of array lists probably.
  * - used hashCode() for generating identifiers; may lead to possible collisions.
@@ -75,7 +74,8 @@ public class Node implements Comparable<Node> {
          flattenedString.append(row);
       }
 
-      return flattenedString.hashCode();
+      String hash = flattenedString.toString();
+      return hash.hashCode();
   }
 
    // creates heuristic value of nodes based on manhattan distance formula
@@ -257,8 +257,9 @@ public class Node implements Comparable<Node> {
 
    }
 
+   /*
    @Override
-   public int hashCode() {
+   public String hashCode() {
        return this.identifier;
    }
 
@@ -273,4 +274,5 @@ public class Node implements Comparable<Node> {
        Node otherNode = (Node) otherObject;
        return identifier == otherNode.identifier;
    }
+   */
 }

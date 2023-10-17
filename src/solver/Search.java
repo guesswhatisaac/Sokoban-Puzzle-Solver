@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.PriorityQueue;
 
 /* Notes
- * - There could be something wrong with closedList hashmap logic, specifically in the key logic
- * - Furthermore, it might be better to use a hashSet for closedList since hashMap functionality is unused
  * - In evaluateSuccessor(), the openList is iterated through to find matching nodes; can possibly be optimized
  */
 
@@ -76,7 +74,6 @@ public class Search {
         return actionList;
     }
 
-    // TODO there seems to be an issue here
     private boolean evaluateSuccessor(Node successorNode){
 
         int successorIdentifier = successorNode.getIdentifier();
