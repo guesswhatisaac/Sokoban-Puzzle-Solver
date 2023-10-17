@@ -22,6 +22,7 @@ public class GameLogic {
         char itemObject = itemsData[playerClone.getX()][playerClone.getY()];
 
         if(mapObject == '#'){
+            
             System.out.print("wall detected. return false"); // DEBUG
             return false;
         } // if crate, also check if crate's movement is valid
@@ -53,6 +54,7 @@ public class GameLogic {
         }
     
         System.out.print("valid crate movement. "); // DEBUG
+
         return true; 
 
     }
@@ -71,18 +73,6 @@ public class GameLogic {
         movedPosition.updatePosition(move);
         char itemObjectInFront = clonedItemData[movedPosition.getX()][movedPosition.getY()];
     
-        
-        /* DEBUG = PREGENERATION
-        System.out.println("\nCLONED MAP");
-        for(int i = 0; i < 5; i++){
-            for(int j = 0; j < 7; j++){
-                System.out.print(clonedItemData[i][j]);
-            }
-            System.out.println();
-        }
-        System.out.println("======================");
-        */
-
         // update itemsData
         clonedItemData[currentPosition.getX()][currentPosition.getY()] = ' ';
         clonedItemData[movedPosition.getX()][movedPosition.getY()] = '@'; 
@@ -95,15 +85,9 @@ public class GameLogic {
         // after updating items data, construct the node
         Node updatedNode = new Node(clonedItemData, map, parentNode.getIdentifier(), parentNode.getGCost(), move);
 
-        /*  DEBUG = POST GENERATION
-        System.out.println("UPDATED MAP");
-        updatedNode.toStringMap();
-
-         */
         return updatedNode;
 
     }
-
 
 
 }

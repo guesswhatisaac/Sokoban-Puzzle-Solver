@@ -12,103 +12,84 @@ public class Search {
 
     private PriorityQueue<Node> openList = new PriorityQueue<>();
     private HashSet<Integer> openListIdentifiers = new HashSet<>();
-    private HashSet<Node> closedList = new HashSet<>();
+    private HashSet<Integer> closedListIdentifiers = new HashSet<>();
     private GameLogic rules = new GameLogic();
     private String actionList;
 
-    public String executeSearch(int width, int height, char[][] mapData, char[][] itemsData){
+    public String executeSearch(int width, int height, char[][] mapData, char[][] itemsData) {
 
         MapData map = new MapData(width, height, mapData);
 
         Node initialNode = new Node(itemsData, map, 0, -1, '\0');
         openList.add(initialNode);
-        openListIdentifiers.add(initialNode.getIdentifier()); // Add the identifier to the openListIdentifiers set
+        openListIdentifiers.add(initialNode.getIdentifier());
 
-        while(!(openList.isEmpty())){
-
-            // gets node with least f-score
+        while (!openList.isEmpty()) {
             Node currentNode = openList.poll();
 
             // DEBUG ===============================
             System.out.println("|Parent Node|");
             currentNode.toStringMap(map);
             currentNode.toStringInfo();
-            System.out.println("current node pulled from open list"); 
+            System.out.println("current node pulled from open list");
             // ======================================
 
-            ArrayList<Node> successors = currentNode.generateSuccessors(rules, currentNode, map);
+            ArrayList<Node> successors = currentNode.generateSuccessors(rules, map);
 
             System.out.println("\n|successors generated|\n"); // DEBUG
 
-            for(int i = 0; i < successors.size(); i++){
-
-                Node currentSuccessor = successors.get(i);
-
+            for (Node currentSuccessor : successors) {
                 // DEBUG ===============================
-                System.out.println("\n|successor node #" + (i+1) + "|");
+                System.out.println("\n|successor node|");
                 currentSuccessor.toStringMap(map);
                 // ======================================
 
-                // end if goal
-                if(currentSuccessor.isGoal(map)){
-                    actionList = backtrackPath(currentSuccessor, closedList);
+                if (currentSuccessor.isGoal(map)) {
+                    actionList = backtrackPath(currentSuccessor, closedListIdentifiers);
                     return actionList;
                 }
 
-                System.out.println("successor node #" + (i+1) + " is not goal"); // DEBUG
+                System.out.println("successor node is not the goal"); // DEBUG
 
-                // else, 
-                if(evaluateSuccessor(currentSuccessor)){
+                if (evaluateSuccessor(currentSuccessor)) {
                     openList.add(currentSuccessor);
-                    openListIdentifiers.add(currentSuccessor.getIdentifier()); // Add the identifier to the openListIdentifiers set
+                    openListIdentifiers.add(currentSuccessor.getIdentifier());
                     System.out.println("successor node added to open list"); // DEBUG
-                }
-                else { // DEBUG
+                } else {
                     System.out.println("successor node NOT added to open list"); // DEBUG
                 }
-
             }
-                // Add the current node to the closed list
-                closedList.add(currentNode);
-                System.out.println("node Added");
+
+            // Add the current node to the closed list
+            closedListIdentifiers.add(currentNode.getIdentifier());
+            System.out.println("node Added");
         }
-        
+
         return actionList;
     }
 
-    private boolean evaluateSuccessor(Node successorNode){
-
+    private boolean evaluateSuccessor(Node successorNode) {
         int successorIdentifier = successorNode.getIdentifier();
-        boolean shouldAdd = true;
 
-        PriorityQueue<Node> openListClone = new PriorityQueue<Node>(openList);
-    
-        // Check if the successor is already in the open list with a lower fCost
-        if(openListIdentifiers.contains(successorIdentifier)){
-            for(int i = 0; i < openListClone.size(); i++){
-                Node nodeCopy = openListClone.poll();
-                if(nodeCopy.getFCost() < successorNode.getFCost() && nodeCopy.getIdentifier() == successorNode.getIdentifier())
-                    shouldAdd = false;
-            }
-        }
-
-        // Check if the successor is already in the closed list with a lower fCost
-        if (shouldAdd) {
-            for (Node closedListNode : closedList) {
-                if (closedListNode.getIdentifier() == successorIdentifier && closedListNode.getFCost() < successorNode.getFCost()) {
-                    shouldAdd = false;
-                    break;
+        if (openListIdentifiers.contains(successorIdentifier)) {
+            // Check if the successor is already in the open list with a lower fCost
+            for (Node nodeCopy : openList) {
+                if (nodeCopy.getIdentifier() == successorIdentifier && nodeCopy.getFCost() < successorNode.getFCost()) {
+                    return false;
                 }
             }
         }
-    
 
-        return shouldAdd;
+        if (closedListIdentifiers.contains(successorIdentifier)) {
+            // Check if the successor is already in the closed list with a lower fCost
+            return false;
+        }
+
+        return true;
     }
 
-    public String backtrackPath(Node goalNode, HashSet<Node> closedList) {
-        // TODO
+    public String backtrackPath(Node goalNode, HashSet<Integer> closedListIdentifiers) {
+        // TODO: Implement path backtracking
         return null;
     }
 }
-

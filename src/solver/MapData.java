@@ -4,61 +4,56 @@ import java.util.ArrayList;
 
 public class MapData {
 
-   private char[][] mapData;
-   private ArrayList<Position> wall = new ArrayList<Position>();
-   private ArrayList<Position> target = new ArrayList<Position>();
-   private int width;
-   private int height;
+    private char[][] mapData;
+    private ArrayList<Position> wall = new ArrayList<>();
+    private ArrayList<Position> target = new ArrayList<>();
+    private int width;
+    private int height;
 
-    public MapData(int width, int height, char[][] mapData){
+    // reads mapData[][] and converts elements to Positions 
+    public MapData(int width, int height, char[][] mapData) {
+        this.width = width;
+        this.height = height;
+        this.mapData = new char[height][width];
 
-      // plot mapData coordinates
-      for(int i = 0; i < height; i++){
-         for(int j = 0; j < width; j++){
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                Position position = new Position(j, i); // i and j reversed due to nested loop logic
+                char mapChar = mapData[i][j];
+                this.mapData[i][j] = mapChar;
 
-            Position position = new Position(j, i); // i and j reversed due to nested loop logic
-              
-               switch (mapData[i][j]) {
-                  case '#' :
-                     wall.add(position); break;
-                  case '.' :
-                     target.add(position); break;
-               }
-         }
-      }
-
-      this.width = width;
-      this.height = height;
-      this.mapData = mapData;
-
-
+                if (mapChar == '#') {
+                    wall.add(position);
+                } else if (mapChar == '.') {
+                    target.add(position);
+                }
+            }
+        }
     }
 
     public char[][] getMapData() {
         char[][] cloneMapData = new char[height][width];
-        for (int i = 0; i < mapData.length; i++) {
-            cloneMapData[i] = mapData[i].clone();
+
+        for(int i = 0; i < height; i++){
+            System.arraycopy(mapData[i], 0, cloneMapData[i], 0, width);
         }
+
         return cloneMapData;
     }
 
-    public ArrayList<Position> getWalls(){
-        return this.wall;
-     }
-  
-     public ArrayList<Position> getTargets(){
-        return this.target;
-     }
+    public ArrayList<Position> getWalls() {
+        return new ArrayList<>(wall);
+    }
 
-     public int getHeight(){
-        return this.height;
-     }
-  
-     public int getWidth(){
-        return this.width;
-     }
-  
-  
+    public ArrayList<Position> getTargets() {
+        return new ArrayList<>(target);
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
 }
-
-

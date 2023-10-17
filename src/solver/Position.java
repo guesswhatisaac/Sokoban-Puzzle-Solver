@@ -2,7 +2,7 @@ package solver;
 
 /* Notes
  * - updatePosition does not account for for negative positions (ex. (-1, 0)); may cause issues on gameLogic
- * - in position constructor, my previous code seems to inverse x and y. fixed it but constructor becomes unreadable
+ * - note that x and y are interchanged in some functions. this is due to the Node constructor's logic in reading the file
  */
 
 
@@ -25,14 +25,12 @@ public class Position {
     }
 
     // compares if positions are equal or not
-    public boolean isEqual(Position object){ // Reversed due to board logic
+    public boolean isEqual(Position object){
  
-        if(this.x == object.getY() && this.y == object.getX()){
+        if(this.x == object.getY() && this.y == object.getX())
             return true;
-        }
-        else{
+        else 
             return false;
-        }
 
     }
 

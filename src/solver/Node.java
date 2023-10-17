@@ -2,15 +2,8 @@ package solver;
 
 import java.util.ArrayList;
 
-/* Notes
- * - to improve memory usage and since mapdata is constant, maybe it's best to store only itemData
- * - use hash sets instead of array lists probably.
- * - used hashCode() for generating identifiers; may lead to possible collisions.
- * - Heuristic used is Manhattan distance. Manhattan Distance = | x 1 − x 2 | + | y 1 − y 2 | 
- */
-
 public class Node implements Comparable<Node> {
-   
+
    private int parentIdentifier;
    private int identifier;
    private char actionUsed;
@@ -19,26 +12,12 @@ public class Node implements Comparable<Node> {
    private int fCost;
 
    private char[][] itemsData;
-   private Position player = new Position(0, 0);
-   private ArrayList<Position> crate = new ArrayList<Position>();
+   private Position player;
+   private ArrayList<Position> crates;
 
-
-   public Node(char[][] itemsData, MapData map, int parentIdentifier, int previousGCost, char actionUsed){
+   public Node(char[][] itemsData, MapData map, int parentIdentifier, int previousGCost, char actionUsed) {
       
-      // plot itemsData & mapData coordinates
-      for(int i = 0; i < map.getHeight(); i++){
-         for(int j = 0; j < map.getWidth(); j++){
-
-            Position position = new Position(j, i); // i and j reversed due to nested loop logic
-              
-               switch (itemsData[i][j]) {
-                  case '@' :
-                     player = new Position(j, i); break;
-                  case '$' :
-                     crate.add(position); break;
-               }
-         }
-      }
+      initializePositions(itemsData, map);
 
       this.itemsData = itemsData;
       this.parentIdentifier = parentIdentifier;
@@ -47,176 +26,166 @@ public class Node implements Comparable<Node> {
       this.gCost = previousGCost + 1;
       this.hCost = generateNodeHeuristicValue(map);
       this.fCost = this.gCost + this.hCost;
-
    }
 
-   // flattens itemsData array to single string & converts it to int
-   private int generateNodeIdentifier(){
+   private void initializePositions(char[][] itemsData, MapData map) {
+      
+      crates = new ArrayList<>();
+      
+      for (int i = 0; i < map.getHeight(); i++) {
+         for (int j = 0; j < map.getWidth(); j++) {
 
+               Position position = new Position(j, i); // inversed due to nested loop logic
+               char currentChar = itemsData[i][j];
+               if (currentChar == '@') {
+                  player = position;
+               } else if (currentChar == '$') {
+                  crates.add(position);
+               }
+         }
+      }
+   }
+
+   private int generateNodeIdentifier() {
       StringBuilder flattenedString = new StringBuilder();
-      for(char[] row : itemsData) {
+      for (char[] row : itemsData) {
          flattenedString.append(row);
       }
-
       String hash = flattenedString.toString();
       return hash.hashCode();
-  }
-
-   // creates heuristic value of nodes based on manhattan distance formula
-   private int generateNodeHeuristicValue(MapData map){
-      
-      int heuristicValue = 0;
-
-      ArrayList<Position> target = map.getTargets();
-      for(int i = 0; i < map.getTargets().size(); i++){
-
-         // reversed due to board logic
-         int crateX = crate.get(i).getY();
-         int crateY = crate.get(i).getX();
-
-         int targetX = target.get(i).getY();
-         int targetY = target.get(i).getX();
-
-         heuristicValue += Math.abs(crateX - targetX) + Math.abs(crateY - targetY); 
-      
-      }
-
-      return heuristicValue;
    }
 
-   // generates all possible successors based on player movement
-   public ArrayList<Node> generateSuccessors(GameLogic rules, Node parentNode, MapData map){
+   private int generateNodeHeuristicValue(MapData map) {
+      int heuristicValue = 0;
+      
+      ArrayList<Position> crates = getCrates();
+      ArrayList<Position> targets = map.getTargets();
+      Position playerPosition = getPlayer();
+  
+      for (int i = 0; i < crates.size(); i++) {
+         int crateX = crates.get(i).getX();
+         int crateY = crates.get(i).getY();
 
-      ArrayList<Node> possibleSuccessors = new ArrayList<Node>();
+         int targetX = targets.get(i).getX();
+         int targetY = targets.get(i).getY();
 
-      // player moves up
-      if(rules.isValidPlayerMovement('u', parentNode.getPlayer(), map.getMapData(), parentNode.getItemsData(map))){
-         Node updatedNode = rules.updatedNode('u', parentNode, map);
-         possibleSuccessors.add(updatedNode);
-      } 
+         // distance from the player to the crate
+         int playerToCrateDistance = Math.abs(playerPosition.getX() - crateX) + Math.abs(playerPosition.getY() - crateY);
 
-      // player moves down 
-      if(rules.isValidPlayerMovement('d', parentNode.getPlayer(), map.getMapData(), parentNode.getItemsData(map))){
-         Node updatedNode = rules.updatedNode('d', parentNode, map);
-         possibleSuccessors.add(updatedNode);
-      } 
+         // distance from the crate to the target
+         int crateToTargetDistance = Math.abs(crateX - targetX) + Math.abs(crateY - targetY);
 
-      // player moves left
-      if(rules.isValidPlayerMovement('l', parentNode.getPlayer(), map.getMapData(), parentNode.getItemsData(map))){
-         Node updatedNode = rules.updatedNode('l', parentNode, map);
-         possibleSuccessors.add(updatedNode);
+         // Add both distances to the heuristic value
+         heuristicValue += playerToCrateDistance + crateToTargetDistance;
       }
+  
+      return heuristicValue;
+  }
+   
+   // generates all possible successors from movements allowed
+   public ArrayList<Node> generateSuccessors(GameLogic rules, MapData map) {
 
-      // player moves right
-      if(rules.isValidPlayerMovement('r', parentNode.getPlayer(), map.getMapData(), parentNode.getItemsData(map))){
-         Node updatedNode = rules.updatedNode('r', parentNode, map);
-         possibleSuccessors.add(updatedNode);
+      ArrayList<Node> possibleSuccessors = new ArrayList<>();
+      char[] movements = { 'u', 'd', 'l', 'r' };
+
+      for(char move : movements) {
+         if (rules.isValidPlayerMovement(move, player, map.getMapData(), itemsData)) {
+            Node updatedNode = rules.updatedNode(move, this, map);
+            possibleSuccessors.add(updatedNode);
+         }
       }
-
       return possibleSuccessors;
    }
 
-   // if all targets are filled, goal is reached
+   // Checks if all targets are filled then goal is reached
    public boolean isGoal(MapData map){
 
-      int targetsFilled = 0;
-      ArrayList<Position> target = map.getTargets();
+   int targetsFilled = 0;
+   ArrayList<Position> target = map.getTargets();
 
-      for(int i = 0; i < target.size(); i++){
-         for(int j = 0; j < crate.size(); j++){
-            if(target.get(i).isEqual(crate.get(j))){
-               targetsFilled++;
-               break;
-            }
-
+   for(int i = 0; i < target.size(); i++){
+      for(int j = 0; j < crates.size(); j++){
+         if(target.get(i).isEqual(crates.get(j))){
+            targetsFilled++;
+            break;
          }
       }
-
-      if(targetsFilled == target.size())
-         return true;
-      
-      return false;
    }
 
-   @Override
-   // orders the nodes from least (top-priority) to most (lowest-priority) fCost value in the priority queue
-   public int compareTo(Node otherNode){
-      if(this.fCost < otherNode.getFCost()){
-         return -1;
-      }
-      else if(this.fCost > otherNode.getFCost()){
-         return 1;
-      }
-      else{
-         return 0;
-      }
-   }
-
-   //___ Getter Methods ___//
-
-   public int getFCost(){
-      return this.fCost;
-   }
-
-   public int getGCost(){
-      return this.gCost;
-   }
-
-   public int getIdentifier(){
-      return this.identifier;
-   }
-
-   public char getActionUsed(){
-      return this.actionUsed;
-   }
-
-   public int getParentIdentifier(){
-      return this.parentIdentifier;
-   }
-
-   public Position getPlayer(){
-      return this.player;
-   }
+   if(targetsFilled == target.size())
+      return true;
    
-   public ArrayList<Position> getCrates(){
-      return this.crate;
-   }
+   return false;
+}
 
+    @Override
+   public int compareTo(Node otherNode) {
+        return Integer.compare(this.fCost, otherNode.fCost);
+    }
+
+   // clones itemData for creating new nodes
    public char[][] getItemsData(MapData map) {
-      char[][] cloneItemsData = new char[map.getHeight()][map.getWidth()];
-      for (int i = 0; i < itemsData.length; i++) {
-          cloneItemsData[i] = itemsData[i].clone();
-      }
-      return cloneItemsData;
-  }
-  
+        char[][] cloneItemsData = new char[map.getHeight()][map.getWidth()];
+        for (int i = 0; i < itemsData.length; i++) {
+            System.arraycopy(itemsData[i], 0, cloneItemsData[i], 0, map.getWidth());
+        }
+        return cloneItemsData;
+    }
+
+   // for debugging purposes
    public void toStringInfo() {
 
-    System.out.println("Action Used: " + actionUsed);
-    System.out.print("Player: " + "(" + player.getX() + "," + player.getY() +")");
-    
-    System.out.print(" | Crates ");
-    for(int i = 0; i < crate.size(); i++){
-      System.out.print("#" + (i+1) + ": " + "(" + crate.get(i).getX() + "," + crate.get(i).getY()+ ")");
-      System.out.print(" , ");
-    }
-    System.out.println("\nfCost: " + this.fCost);
-    System.out.println("ID: " + getIdentifier());
-    System.out.println("PARENT ID: " + parentIdentifier);
-    System.out.println();
+        System.out.println("Action Used: " + actionUsed);
+        System.out.print("Player: " );  player.toStringInfo();
+        System.out.print(" | Crates ");
 
-   }
-
-   public void toStringMap(MapData map){
-
-      System.out.println("\n");
-      for(int i = 0; i < map.getHeight(); i++){
-         for(int j = 0; j < map.getWidth(); j++){
-            System.out.print(itemsData[i][j]);
+        for (int i = 0; i < crates.size(); i++) {
+            System.out.print("#" + (i + 1) + ": "); 
+            crates.get(i).toStringInfo();
          }
-         System.out.println();
-      }
 
-   }
+        System.out.println("\nFCost: " + this.fCost);
+        System.out.println("ID: " + getIdentifier());
+        System.out.println("PARENT ID: " + parentIdentifier);
+        System.out.println();
+    }
+
+   // for debugging purposes
+   public void toStringMap(MapData map) {
+        System.out.println("\n");
+        for (int i = 0; i < map.getHeight(); i++) {
+            System.out.println(new String(itemsData[i]));
+        }
+    }
+
+   /* GETTER METHODS */
+   public int getFCost() {
+        return fCost;
+    }
+
+   public int getGCost() {
+        return gCost;
+    }
+
+   public int getIdentifier() {
+        return identifier;
+    }
+
+   public char getActionUsed() {
+        return actionUsed;
+    }
+
+   public int getParentIdentifier() {
+        return parentIdentifier;
+    }
+
+   public Position getPlayer() {
+        return player;
+    }
+
+   public ArrayList<Position> getCrates() {
+        return crates;
+    }
+
 
 }
