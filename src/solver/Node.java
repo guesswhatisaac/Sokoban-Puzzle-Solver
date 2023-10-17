@@ -32,7 +32,8 @@ public class Node implements Comparable<Node> {
    public Node(int width, int height, char[][] itemsData, char[][] mapData, int parentIdentifier,
                int previousGCost, char actionUsed){
       
-      // plot itemsData & mapData coordinates
+      // plot itemsData & mapData coordinates 
+      // i and j are reversed ie. i is y and j is x, but i fixed it in position class
       for(int i = 0; i < height; i++){
          for(int j = 0; j < width; j++){
 
@@ -107,21 +108,31 @@ public class Node implements Comparable<Node> {
       if(rules.isValidPlayerMovement('u', player, mapData, itemsData)){
          Node updatedNode = rules.updatedNode('u', parentNode);
          possibleSuccessors.add(updatedNode);
+
+         System.out.println("UP"); // DEBUG
       } 
-      // player moves down
-      else if(rules.isValidPlayerMovement('d', player, mapData, itemsData)){
+
+      // player moves down 
+      if(rules.isValidPlayerMovement('d', player, mapData, itemsData)){
          Node updatedNode = rules.updatedNode('d', parentNode);
          possibleSuccessors.add(updatedNode);
+         
+         System.out.println("DOWN"); // DEBUG
       } 
+
       // player moves left
-      else if(rules.isValidPlayerMovement('l', player, mapData, itemsData)){
+      if(rules.isValidPlayerMovement('l', player, mapData, itemsData)){
          Node updatedNode = rules.updatedNode('l', parentNode);
          possibleSuccessors.add(updatedNode);
+
+         System.out.println("LEFT"); // DEBUG
       }
+      
       // player moves right
-      else if(rules.isValidPlayerMovement('r', player, mapData, itemsData)){
+      if(rules.isValidPlayerMovement('r', player, mapData, itemsData)){
          Node updatedNode = rules.updatedNode('r', parentNode);
          possibleSuccessors.add(updatedNode);
+         System.out.println("RIGHT"); // DEBUG
       }
 
       return possibleSuccessors;
@@ -216,18 +227,16 @@ public class Node implements Comparable<Node> {
       return this.mapData;
    }
 
-   @Override
-   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("Node Information:\n");
-    sb.append("Parent Identifier: ").append(parentIdentifier).append("\n");
-    sb.append("Node Identifier: ").append(identifier).append("\n");
-    sb.append("Action Used: ").append(actionUsed).append("\n");
-    sb.append("gCost: ").append(gCost).append("\n");
-    sb.append("hCost: ").append(hCost).append("\n");
-    sb.append("fCost: ").append(fCost).append("\n");
+   public void toStringInfo() {
 
-    return sb.toString();
+    System.out.println("Action Used: " + actionUsed);
+    System.out.println("Player Position: " + "(" + player.getX() + "," + player.getY() +")");
+    
+    System.out.println("Crate Positions");
+    for(int i = 0; i < crate.size(); i++){
+      System.out.println("Crate #" + (i+1) + ": " + "(" + crate.get(i).getX() + "," + crate.get(i).getY()+ ")");
+    }
+
    }
 
    public void toStringMap(){

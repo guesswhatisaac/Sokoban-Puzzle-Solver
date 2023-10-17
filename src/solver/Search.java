@@ -28,6 +28,19 @@ public class Search {
             Node currentNode = openList.poll();
             ArrayList<Node> successors = currentNode.generateSuccessors(rules, currentNode);
 
+            // DEBUG
+            for(int i = 0; i < successors.size(); i++){
+                System.out.println("successor count: " + successors.size());
+                successors.get(i).toStringMap();
+                successors.get(i).toStringInfo();                
+            }
+
+            int x = 1;
+            if(x == 1)
+                return null;
+
+            //
+
             for(int i = 0; i < successors.size(); i++){
 
                 Node currentSuccessor = successors.get(i);
@@ -42,9 +55,6 @@ public class Search {
 
             }
 
-            
-            currentNode.toStringMap(); // DEBUG
-            System.out.println(currentNode.toString()); // DEBUG
             closedList.put(currentNode.getIdentifier(), currentNode);
         }
         

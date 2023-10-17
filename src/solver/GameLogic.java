@@ -1,16 +1,19 @@
 package solver;
 
 /* Notes
- * - updatedNodes does not check if movement is valid, since the validators do it instead
+ * - updatedNodes does not check if movement is valid & naively updates, since the validators do the checking instead
+ * - all methods may not be working properly
  */
 
 public class GameLogic {
 
     // checks player movement based on moveInput
     public boolean isValidPlayerMovement(char move, Position player, char[][] mapData, char[][] itemsData){
+
+        // DEBUG
+        System.out.println("Checking move " +"'"+ move +"'");
     
         Position playerClone = new Position(player.getX(), player.getY());
-
         playerClone.updatePosition(move);
     
         // gets object infront of the player
@@ -18,10 +21,12 @@ public class GameLogic {
         char itemObject = itemsData[playerClone.getX()][playerClone.getY()];
 
         if(mapObject == '#'){
+            System.out.println("wall detected. return false"); // DEBUG
             return false;
         } // if crate, also check if crate's movement is valid
         else if(itemObject == '$'){
             if (!isValidCrateMovement(move, playerClone, mapData, itemsData)) {
+                System.out.println("crate found, its movement not valid. return false"); // DEBUG
                 return false;
             }
         }
@@ -32,16 +37,18 @@ public class GameLogic {
     
     private boolean isValidCrateMovement(char move, Position crate, char[][] mapData, char[][] itemsData){
 
-        Position crateClone = new Position(crate.getX(), crate.getY());
-        crateClone.updatePosition(move);
+        Position detector = new Position(crate.getX(), crate.getY());
+
+        detector.updatePosition(move);
 
         // gets object infront of the crate
-        char mapObject = mapData[crateClone.getX()][crateClone.getY()];
-        char itemObject = itemsData[crateClone.getX()][crateClone.getY()];
+        char mapObject = mapData[detector.getY()][detector.getX()]; // FIX: SWITCHED
+        char itemObject = itemsData[detector.getY()][detector.getX()]; // FIX: SWITCHED
 
         // Crate movement is not valid if blocked by a wall or another crate
-        if(mapObject == '#' || itemObject == '$')
+        if(mapObject == '#' || itemObject == '$'){
             return false;
+        }
     
         return true; 
 
@@ -50,22 +57,34 @@ public class GameLogic {
     // updates map and item data based on moveInput then constructs a valid successor node 
     public Node updatedNode(char move, Node parentNode) {
 
-
         // get player's position
         Position currentPosition = new Position(parentNode.getPlayer().getX(), parentNode.getPlayer().getY());
         Position movedPosition = new Position(parentNode.getPlayer().getX(), parentNode.getPlayer().getY());
 
         // get object infront of player
         movedPosition.updatePosition(move);
-        char itemObjectInFront = parentNode.getItemsData()[movedPosition.getX()][movedPosition.getY()];
+        char itemObjectInFront = parentNode.getItemsData()[movedPosition.getY()][movedPosition.getX()];
+    
+        // DEBUG
+        System.out.print("Parent Node Pos: ");
+        parentNode.getPlayer().toStringInfo();
+        System.out.println("Move: " + move);
+        System.out.print("CurrentPos: ");
+        currentPosition.toStringInfo();
+        
+        //
+        //DEBUG
+        System.out.print("MovedPos: ");
+        movedPosition.toStringInfo();
+        //
 
         // update itemsData
-        parentNode.getItemsData()[currentPosition.getX()][currentPosition.getY()] = ' ';
-        parentNode.getItemsData()[movedPosition.getX()][movedPosition.getY()] = '@';
+        parentNode.getItemsData()[currentPosition.getY()][currentPosition.getX()] = ' ';
+        parentNode.getItemsData()[movedPosition.getY()][movedPosition.getX()] = '@';
 
         if (itemObjectInFront == '$') {
-            movedPosition.updatePosition(move);
-            parentNode.getItemsData()[movedPosition.getX()][movedPosition.getY()] = '$';
+            movedPosition.updatePosition(move); // DEBUG
+            parentNode.getItemsData()[movedPosition.getY()][movedPosition.getX()] = '$';
         }
   
         // after updating items data, construct the node
