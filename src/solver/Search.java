@@ -12,6 +12,7 @@ public class Search {
 
     private PriorityQueue<Node> openList = new PriorityQueue<>();
     private HashSet<Integer> openListIdentifiers = new HashSet<>();
+    private ArrayList<Node> closedList = new ArrayList<>();
     private HashSet<Integer> closedListIdentifiers = new HashSet<>();
     private GameLogic rules = new GameLogic();
     private String actionList;
@@ -24,7 +25,8 @@ public class Search {
         openList.add(initialNode);
         openListIdentifiers.add(initialNode.getIdentifier());
 
-        while (!openList.isEmpty()) {
+        while (!openList.isEmpty()){
+
             Node currentNode = openList.poll();
 
             // DEBUG ===============================
@@ -32,43 +34,46 @@ public class Search {
             currentNode.toStringMap(map);
             currentNode.toStringInfo();
             System.out.println("current node pulled from open list");
-            // ======================================
+            //======================================
 
             ArrayList<Node> successors = currentNode.generateSuccessors(rules, map);
 
-            System.out.println("\n|successors generated|\n"); // DEBUG
-
             for (Node currentSuccessor : successors) {
-                // DEBUG ===============================
+    
+                //DEBUG ===============================
                 System.out.println("\n|successor node|");
                 currentSuccessor.toStringMap(map);
-                // ======================================
+                //====================================== 
 
                 if (currentSuccessor.isGoal(map)) {
                     actionList = backtrackPath(currentSuccessor, closedListIdentifiers);
+                    currentSuccessor.toStringMap(map);
+                    currentSuccessor.toStringInfo();
                     return actionList;
                 }
 
-                System.out.println("successor node is not the goal"); // DEBUG
+                //System.out.println("successor node is not the goal"); // DEBUG
 
                 if (evaluateSuccessor(currentSuccessor)) {
                     openList.add(currentSuccessor);
                     openListIdentifiers.add(currentSuccessor.getIdentifier());
-                    System.out.println("successor node added to open list"); // DEBUG
+                    //System.out.println("successor node added to open list"); // DEBUG
                 } else {
-                    System.out.println("successor node NOT added to open list"); // DEBUG
+                    //System.out.println("successor node NOT added to open list"); // DEBUG
                 }
             }
 
             // Add the current node to the closed list
             closedListIdentifiers.add(currentNode.getIdentifier());
-            System.out.println("node Added");
+            closedList.add(currentNode);
+            //System.out.println("node Added");
         }
 
         return actionList;
     }
 
     private boolean evaluateSuccessor(Node successorNode) {
+
         int successorIdentifier = successorNode.getIdentifier();
 
         if (openListIdentifiers.contains(successorIdentifier)) {

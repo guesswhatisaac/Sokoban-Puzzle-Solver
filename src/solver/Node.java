@@ -2,6 +2,10 @@ package solver;
 
 import java.util.ArrayList;
 
+/* Notes
+ * - maybe instead of having to read new nodes over and over, i can just store positions 
+ */
+
 public class Node implements Comparable<Node> {
 
    private int parentIdentifier;
@@ -44,6 +48,7 @@ public class Node implements Comparable<Node> {
                }
          }
       }
+      
    }
 
    private int generateNodeHeuristicValue(MapData map) {

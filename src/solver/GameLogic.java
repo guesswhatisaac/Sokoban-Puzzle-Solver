@@ -12,7 +12,7 @@ public class GameLogic {
 
     public boolean isValidPlayerMovement(char move, MapData map, Node node){
 
-        System.out.print("\nChecking move " +"'"+ move +"'" + " : "); // DEBUG
+        //System.out.print("\nChecking move " +"'"+ move +"'" + " : "); // DEBUG
     
         // REVERSED X & Y
         Position playerClone = new Position(node.getPlayer().getY(), node.getPlayer().getX());
@@ -25,13 +25,12 @@ public class GameLogic {
         char itemObject = itemsData[playerClone.getX()][playerClone.getY()];
 
         if(mapObject == '#'){
-            
-            System.out.print("wall detected. return false"); // DEBUG
+            //System.out.print("wall detected. return false"); // DEBUG
             return false;
         } // if crate, also check if crate's movement is valid
         else if(itemObject == '$'){
             if(!isValidCrateMovement(move, playerClone, mapData , itemsData)) {
-                System.out.print("crate found, its movement not valid. return false"); // DEBUG
+                //System.out.print("crate found, its movement not valid. return false"); // DEBUG
                 return false;
             }
             /*
@@ -41,7 +40,7 @@ public class GameLogic {
             }*/
         }
 
-        System.out.print("Move valid!");
+        //System.out.print("Move valid!");
         return true;
 
     }
@@ -61,7 +60,7 @@ public class GameLogic {
             return false;
         }
     
-        System.out.print("valid crate movement. "); // DEBUG
+        //System.out.print("valid crate movement. "); // DEBUG
 
         return true; 
 

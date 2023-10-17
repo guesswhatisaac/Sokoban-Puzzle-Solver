@@ -32,13 +32,7 @@ public class MapData {
     }
 
     public char[][] getMapData() {
-        char[][] cloneMapData = new char[height][width];
-
-        for(int i = 0; i < height; i++){
-            System.arraycopy(mapData[i], 0, cloneMapData[i], 0, width);
-        }
-
-        return cloneMapData;
+        return this.mapData;
     }
 
     public ArrayList<Position> getWalls() {
