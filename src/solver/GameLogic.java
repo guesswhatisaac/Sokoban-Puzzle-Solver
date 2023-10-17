@@ -39,11 +39,30 @@ public class GameLogic {
 
         Position detector = new Position(crate.getX(), crate.getY());
 
+        /*
+        //DEBUG
+        System.out.print("Crate detected position: ");
+        crate.toStringInfo();
+        //
+        
+        detector.updatePosition(move);
+        
+        //DEBUG
+        System.out.print("detector position: ");
+        detector.toStringInfo();
+        //
+        
+        // gets object infront of the crate
+        char prevmapObject = mapData[crate.getX()][crate.getY()]; // DEBUG
+        char previtemObject = itemsData[crate.getX()][crate.getY()]; // DEBUG
+
+
+        */
+
         detector.updatePosition(move);
 
-        // gets object infront of the crate
-        char mapObject = mapData[detector.getY()][detector.getX()]; // FIX: SWITCHED
-        char itemObject = itemsData[detector.getY()][detector.getX()]; // FIX: SWITCHED
+        char mapObject = mapData[detector.getX()][detector.getY()]; 
+        char itemObject = itemsData[detector.getX()][detector.getY()];
 
         // Crate movement is not valid if blocked by a wall or another crate
         if(mapObject == '#' || itemObject == '$'){
@@ -63,7 +82,7 @@ public class GameLogic {
 
         // get object infront of player
         movedPosition.updatePosition(move);
-        char itemObjectInFront = parentNode.getItemsData()[movedPosition.getY()][movedPosition.getX()];
+        char itemObjectInFront = parentNode.getItemsData()[movedPosition.getX()][movedPosition.getY()];
     
         // DEBUG
         System.out.print("Parent Node Pos: ");
@@ -79,12 +98,12 @@ public class GameLogic {
         //
 
         // update itemsData
-        parentNode.getItemsData()[currentPosition.getY()][currentPosition.getX()] = ' ';
-        parentNode.getItemsData()[movedPosition.getY()][movedPosition.getX()] = '@';
+        parentNode.getItemsData()[currentPosition.getX()][currentPosition.getY()] = ' ';
+        parentNode.getItemsData()[movedPosition.getX()][movedPosition.getY()] = '@';
 
         if (itemObjectInFront == '$') {
-            movedPosition.updatePosition(move); // DEBUG
-            parentNode.getItemsData()[movedPosition.getY()][movedPosition.getX()] = '$';
+            // movedPosition.updatePosition(move); // DEBUG
+            parentNode.getItemsData()[movedPosition.getX()][movedPosition.getY()] = '$';
         }
   
         // after updating items data, construct the node
