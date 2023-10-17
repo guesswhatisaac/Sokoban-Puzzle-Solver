@@ -8,17 +8,20 @@ package solver;
 
 public class GameLogic {
 
-    // checks player movement based on moveInput
-    public boolean isValidPlayerMovement(char move, Position player, char[][] mapData, char[][] itemsData){
+    DeadlockDetector deadlockDetector = new DeadlockDetector();
+
+    public boolean isValidPlayerMovement(char move, MapData map, Node node){
 
         System.out.print("\nChecking move " +"'"+ move +"'" + " : "); // DEBUG
     
         // REVERSED X & Y
-        Position playerClone = new Position(player.getY(), player.getX());
+        Position playerClone = new Position(node.getPlayer().getY(), node.getPlayer().getX());
         playerClone.updatePosition(move);
     
         // gets object infront of the player
-        char mapObject = mapData[playerClone.getX()][playerClone.getY()];
+        char[][] mapData = map.getMapData();
+        char[][] itemsData = node.getItemsData(map);
+        char mapObject = mapData[playerClone.getX()][playerClone.getY()]; 
         char itemObject = itemsData[playerClone.getX()][playerClone.getY()];
 
         if(mapObject == '#'){
@@ -27,17 +30,22 @@ public class GameLogic {
             return false;
         } // if crate, also check if crate's movement is valid
         else if(itemObject == '$'){
-            if (!isValidCrateMovement(move, playerClone, mapData, itemsData)) {
+            if(!isValidCrateMovement(move, playerClone, mapData , itemsData)) {
                 System.out.print("crate found, its movement not valid. return false"); // DEBUG
                 return false;
             }
+            /*
+            else if(deadlockDetector.isDeadlocked(node, this)){
+                System.out.print("crate found, its movement creates deadlock. return false"); // DEBUG
+                return false;
+            }*/
         }
 
         System.out.print("Move valid!");
         return true;
 
     }
-    
+
     private boolean isValidCrateMovement(char move, Position crate, char[][] mapData, char[][] itemsData){
 
         // REVERSED X AND Y
@@ -83,11 +91,19 @@ public class GameLogic {
         }
 
         // after updating items data, construct the node
-        Node updatedNode = new Node(clonedItemData, map, parentNode.getIdentifier(), parentNode.getGCost(), move);
+        Node updatedNode = new Node(clonedItemData, map, parentNode.getIdentifier(), parentNode.getGCost(), move, this);
 
         return updatedNode;
 
     }
 
+    public int generateIdentifier(char[][] itemsData) {
+        StringBuilder flattenedString = new StringBuilder();
+        for (char[] row : itemsData) {
+           flattenedString.append(row);
+        }
+        String hash = flattenedString.toString();
+        return hash.hashCode();
+     }
 
 }

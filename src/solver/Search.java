@@ -20,7 +20,7 @@ public class Search {
 
         MapData map = new MapData(width, height, mapData);
 
-        Node initialNode = new Node(itemsData, map, 0, -1, '\0');
+        Node initialNode = new Node(itemsData, map, 0, -1, '\0', rules);
         openList.add(initialNode);
         openListIdentifiers.add(initialNode.getIdentifier());
 

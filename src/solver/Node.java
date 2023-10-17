@@ -15,13 +15,13 @@ public class Node implements Comparable<Node> {
    private Position player;
    private ArrayList<Position> crates;
 
-   public Node(char[][] itemsData, MapData map, int parentIdentifier, int previousGCost, char actionUsed) {
+   public Node(char[][] itemsData, MapData map, int parentIdentifier, int previousGCost, char actionUsed, GameLogic rules) {
       
       initializePositions(itemsData, map);
 
       this.itemsData = itemsData;
       this.parentIdentifier = parentIdentifier;
-      this.identifier = generateNodeIdentifier();
+      this.identifier = rules.generateIdentifier(itemsData);
       this.actionUsed = actionUsed;
       this.gCost = previousGCost + 1;
       this.hCost = generateNodeHeuristicValue(map);
@@ -44,15 +44,6 @@ public class Node implements Comparable<Node> {
                }
          }
       }
-   }
-
-   private int generateNodeIdentifier() {
-      StringBuilder flattenedString = new StringBuilder();
-      for (char[] row : itemsData) {
-         flattenedString.append(row);
-      }
-      String hash = flattenedString.toString();
-      return hash.hashCode();
    }
 
    private int generateNodeHeuristicValue(MapData map) {
@@ -89,7 +80,7 @@ public class Node implements Comparable<Node> {
       char[] movements = { 'u', 'd', 'l', 'r' };
 
       for(char move : movements) {
-         if (rules.isValidPlayerMovement(move, player, map.getMapData(), itemsData)) {
+         if (rules.isValidPlayerMovement(move, map, this)) {
             Node updatedNode = rules.updatedNode(move, this, map);
             possibleSuccessors.add(updatedNode);
          }
