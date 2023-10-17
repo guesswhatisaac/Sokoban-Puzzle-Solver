@@ -1,8 +1,7 @@
 package solver;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.PriorityQueue;
 
 /* Notes
@@ -13,8 +12,9 @@ import java.util.PriorityQueue;
 
 public class Search {
 
-    private PriorityQueue<Node> openList = new PriorityQueue<Node>();
-    private Map<Integer, Node> closedList = new HashMap<Integer, Node>();
+    private PriorityQueue<Node> openList = new PriorityQueue<>();
+    private HashSet<Integer> openListIdentifiers = new HashSet<>();
+    private HashSet<Node> closedList = new HashSet<>();
     private GameLogic rules = new GameLogic();
     private String actionList;
 
@@ -22,15 +22,19 @@ public class Search {
 
         Node initialNode = new Node(width, height, itemsData, mapData, 0, -1, '\0');
         openList.add(initialNode);
+        openListIdentifiers.add(initialNode.getIdentifier()); // Add the identifier to the openListIdentifiers set
 
         while(!(openList.isEmpty())){
 
+            // gets node with least f-score
             Node currentNode = openList.poll();
 
-            System.out.println("|Parent Node|"); // DEBUG
-            currentNode.toStringMap(); // DEBUG
+            // DEBUG ===============================
+            System.out.println("|Parent Node|");
+            currentNode.toStringMap();
             currentNode.toStringInfo();
-            System.out.println("current node pulled from open list"); // DEBUG
+            System.out.println("current node pulled from open list"); 
+            // ======================================
 
             ArrayList<Node> successors = currentNode.generateSuccessors(rules, currentNode);
 
@@ -40,77 +44,72 @@ public class Search {
 
                 Node currentSuccessor = successors.get(i);
 
-                System.out.println("\n|successor node #" + (i+1) + "|"); // DEBUG
-                currentSuccessor.toStringMap(); // DEBUG
-                //currentSuccessor.toStringInfo(); // DEBUG
-                
+                // DEBUG ===============================
+                System.out.println("\n|successor node #" + (i+1) + "|");
+                currentSuccessor.toStringMap();
+                // ======================================
 
+                // end if goal
                 if(currentSuccessor.isGoal()){
                     actionList = backtrackPath(currentSuccessor, closedList);
                     return actionList;
                 }
+
                 System.out.println("successor node #" + (i+1) + " is not goal"); // DEBUG
-                
-                if(evaluateSuccessor(currentNode, currentSuccessor)){
+
+                // else, 
+                if(evaluateSuccessor(currentSuccessor)){
                     openList.add(currentSuccessor);
+                    openListIdentifiers.add(currentSuccessor.getIdentifier()); // Add the identifier to the openListIdentifiers set
                     System.out.println("successor node added to open list"); // DEBUG
                 }
-                else{ // DEBUG
+                else { // DEBUG
                     System.out.println("successor node NOT added to open list"); // DEBUG
                 }
-                
-            }
 
-            closedList.put(currentNode.getIdentifier(), currentNode);
-            System.out.println("current node added to closed list"); // DEBUG
-            
+            }
+                // Add the current node to the closed list
+                closedList.add(currentNode);
+                System.out.println("node Added");
         }
         
         return actionList;
     }
 
     // TODO there seems to be an issue here
-    private boolean evaluateSuccessor(Node parentNode, Node successorNode){
+    private boolean evaluateSuccessor(Node successorNode){
 
         int successorIdentifier = successorNode.getIdentifier();
         boolean shouldAdd = true;
 
         PriorityQueue<Node> openListClone = new PriorityQueue<Node>(openList);
     
-        // if successor already in openList && openList node w/ same identifier < successor identifier
-        for(int i = 0; i < openListClone.size(); i++){
-            Node nodeCopy = openListClone.poll();
-            if(nodeCopy.getFCost() < successorNode.getFCost() && nodeCopy.getIdentifier() == successorNode.getIdentifier())
-                shouldAdd = false;
+        // Check if the successor is already in the open list with a lower fCost
+        if(openListIdentifiers.contains(successorIdentifier)){
+            for(int i = 0; i < openListClone.size(); i++){
+                Node nodeCopy = openListClone.poll();
+                if(nodeCopy.getFCost() < successorNode.getFCost() && nodeCopy.getIdentifier() == successorNode.getIdentifier())
+                    shouldAdd = false;
+            }
         }
 
-        // if successor already in closedList && closedList node w/ same identifier < successor identifier
-        if(closedList.containsKey(successorIdentifier) && closedList.get(successorIdentifier).getFCost() < successorNode.getFCost())
-            shouldAdd = false;
-        
+        // Check if the successor is already in the closed list with a lower fCost
+        if (shouldAdd) {
+            for (Node closedListNode : closedList) {
+                if (closedListNode.getIdentifier() == successorIdentifier && closedListNode.getFCost() < successorNode.getFCost()) {
+                    shouldAdd = false;
+                    break;
+                }
+            }
+        }
+    
+
         return shouldAdd;
     }
 
-    // TODO back track doesnt work
-    public String backtrackPath(Node goalNode, Map<Integer, Node> closedList) {
-        StringBuilder actions = new StringBuilder();
-        Node currentNode = goalNode;
-    
-        // Start from the goal node and follow the parent links
-        while (currentNode != null) {
-            if (currentNode.getActionUsed() != '\0') {
-                actions.insert(0, currentNode.getActionUsed());
-            }
-            int parentIdentifier = currentNode.getParentIdentifier();
-    
-            System.out.println("Current Node Identifier: " + currentNode.getIdentifier());
-            System.out.println("Parent Identifier: " + parentIdentifier);
-    
-            currentNode = closedList.get(parentIdentifier);
-        }
-    
-        System.out.println("Path: " + actions.toString());
-        return actions.toString();
+    public String backtrackPath(Node goalNode, HashSet<Node> closedList) {
+        // TODO
+        return null;
     }
-    
 }
+

@@ -240,6 +240,7 @@ public class Node implements Comparable<Node> {
     }
     System.out.println("\nfCost: " + this.fCost);
     System.out.println("ID: " + getIdentifier());
+    System.out.println("PARENT ID: " + parentIdentifier);
     System.out.println();
 
    }
@@ -256,4 +257,20 @@ public class Node implements Comparable<Node> {
 
    }
 
+   @Override
+   public int hashCode() {
+       return this.identifier;
+   }
+
+   @Override
+   public boolean equals(Object otherObject) {
+       if (this == otherObject) {
+           return true;
+       }
+       if (otherObject == null || getClass() != otherObject.getClass()) {
+           return false;
+       }
+       Node otherNode = (Node) otherObject;
+       return identifier == otherNode.identifier;
+   }
 }
