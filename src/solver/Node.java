@@ -18,22 +18,16 @@ public class Node implements Comparable<Node> {
    private int hCost;
    private int fCost;
 
-   private int width;
-   private int height;
    private char[][] itemsData;
-   private char[][] mapData;
-
    private Position player = new Position(0, 0);
    private ArrayList<Position> crate = new ArrayList<Position>();
-   private ArrayList<Position> wall = new ArrayList<Position>();
-   private ArrayList<Position> target = new ArrayList<Position>();
 
-   public Node(int width, int height, char[][] itemsData, char[][] mapData, int parentIdentifier,
-               int previousGCost, char actionUsed){
+
+   public Node(char[][] itemsData, MapData map, int parentIdentifier, int previousGCost, char actionUsed){
       
       // plot itemsData & mapData coordinates
-      for(int i = 0; i < height; i++){
-         for(int j = 0; j < width; j++){
+      for(int i = 0; i < map.getHeight(); i++){
+         for(int j = 0; j < map.getWidth(); j++){
 
             Position position = new Position(j, i); // i and j reversed due to nested loop logic
               
@@ -43,25 +37,15 @@ public class Node implements Comparable<Node> {
                   case '$' :
                      crate.add(position); break;
                }
-
-               switch (mapData[i][j]) {
-                  case '#' :
-                     wall.add(position); break;
-                  case '.' :
-                     target.add(position); break;
-               }
          }
       }
 
-      this.width = width;
-      this.height = height;
       this.itemsData = itemsData;
-      this.mapData = mapData;
       this.parentIdentifier = parentIdentifier;
       this.identifier = generateNodeIdentifier();
       this.actionUsed = actionUsed;
       this.gCost = previousGCost + 1;
-      this.hCost = generateNodeHeuristicValue();
+      this.hCost = generateNodeHeuristicValue(map);
       this.fCost = this.gCost + this.hCost;
 
    }
@@ -79,11 +63,12 @@ public class Node implements Comparable<Node> {
   }
 
    // creates heuristic value of nodes based on manhattan distance formula
-   private int generateNodeHeuristicValue(){
+   private int generateNodeHeuristicValue(MapData map){
       
       int heuristicValue = 0;
 
-      for(int i = 0; i < target.size(); i++){
+      ArrayList<Position> target = map.getTargets();
+      for(int i = 0; i < map.getTargets().size(); i++){
 
          // reversed due to board logic
          int crateX = crate.get(i).getY();
@@ -100,31 +85,31 @@ public class Node implements Comparable<Node> {
    }
 
    // generates all possible successors based on player movement
-   public ArrayList<Node> generateSuccessors(GameLogic rules, Node parentNode){
+   public ArrayList<Node> generateSuccessors(GameLogic rules, Node parentNode, MapData map){
 
       ArrayList<Node> possibleSuccessors = new ArrayList<Node>();
 
       // player moves up
-      if(rules.isValidPlayerMovement('u', parentNode.getPlayer(), parentNode.getMapData(), parentNode.getItemsData())){
-         Node updatedNode = rules.updatedNode('u', parentNode);
+      if(rules.isValidPlayerMovement('u', parentNode.getPlayer(), map.getMapData(), parentNode.getItemsData(map))){
+         Node updatedNode = rules.updatedNode('u', parentNode, map);
          possibleSuccessors.add(updatedNode);
       } 
 
       // player moves down 
-      if(rules.isValidPlayerMovement('d', parentNode.getPlayer(), parentNode.getMapData(), parentNode.getItemsData())){
-         Node updatedNode = rules.updatedNode('d', parentNode);
+      if(rules.isValidPlayerMovement('d', parentNode.getPlayer(), map.getMapData(), parentNode.getItemsData(map))){
+         Node updatedNode = rules.updatedNode('d', parentNode, map);
          possibleSuccessors.add(updatedNode);
       } 
 
       // player moves left
-      if(rules.isValidPlayerMovement('l', parentNode.getPlayer(), parentNode.getMapData(), parentNode.getItemsData())){
-         Node updatedNode = rules.updatedNode('l', parentNode);
+      if(rules.isValidPlayerMovement('l', parentNode.getPlayer(), map.getMapData(), parentNode.getItemsData(map))){
+         Node updatedNode = rules.updatedNode('l', parentNode, map);
          possibleSuccessors.add(updatedNode);
       }
 
       // player moves right
-      if(rules.isValidPlayerMovement('r', parentNode.getPlayer(), parentNode.getMapData(), parentNode.getItemsData())){
-         Node updatedNode = rules.updatedNode('r', parentNode);
+      if(rules.isValidPlayerMovement('r', parentNode.getPlayer(), map.getMapData(), parentNode.getItemsData(map))){
+         Node updatedNode = rules.updatedNode('r', parentNode, map);
          possibleSuccessors.add(updatedNode);
       }
 
@@ -132,9 +117,10 @@ public class Node implements Comparable<Node> {
    }
 
    // if all targets are filled, goal is reached
-   public boolean isGoal(){
+   public boolean isGoal(MapData map){
 
       int targetsFilled = 0;
+      ArrayList<Position> target = map.getTargets();
 
       for(int i = 0; i < target.size(); i++){
          for(int j = 0; j < crate.size(); j++){
@@ -196,38 +182,14 @@ public class Node implements Comparable<Node> {
       return this.crate;
    }
 
-   public ArrayList<Position> getWalls(){
-      return this.wall;
-   }
-
-   public ArrayList<Position> getTargets(){
-      return this.target;
-   }
-
-   public int getHeight(){
-      return this.height;
-   }
-
-   public int getWidth(){
-      return this.width;
-   }
-
-   public char[][] getItemsData() {
-      char[][] cloneItemsData = new char[height][width];
+   public char[][] getItemsData(MapData map) {
+      char[][] cloneItemsData = new char[map.getHeight()][map.getWidth()];
       for (int i = 0; i < itemsData.length; i++) {
           cloneItemsData[i] = itemsData[i].clone();
       }
       return cloneItemsData;
   }
   
-  public char[][] getMapData() {
-      char[][] cloneMapData = new char[height][width];
-      for (int i = 0; i < mapData.length; i++) {
-          cloneMapData[i] = mapData[i].clone();
-      }
-      return cloneMapData;
-  }
-
    public void toStringInfo() {
 
     System.out.println("Action Used: " + actionUsed);
@@ -245,11 +207,11 @@ public class Node implements Comparable<Node> {
 
    }
 
-   public void toStringMap(){
+   public void toStringMap(MapData map){
 
       System.out.println("\n");
-      for(int i = 0; i < height; i++){
-         for(int j = 0; j < width; j++){
+      for(int i = 0; i < map.getHeight(); i++){
+         for(int j = 0; j < map.getWidth(); j++){
             System.out.print(itemsData[i][j]);
          }
          System.out.println();
@@ -257,22 +219,4 @@ public class Node implements Comparable<Node> {
 
    }
 
-   /*
-   @Override
-   public String hashCode() {
-       return this.identifier;
-   }
-
-   @Override
-   public boolean equals(Object otherObject) {
-       if (this == otherObject) {
-           return true;
-       }
-       if (otherObject == null || getClass() != otherObject.getClass()) {
-           return false;
-       }
-       Node otherNode = (Node) otherObject;
-       return identifier == otherNode.identifier;
-   }
-   */
 }

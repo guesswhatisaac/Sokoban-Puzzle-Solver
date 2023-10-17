@@ -18,7 +18,9 @@ public class Search {
 
     public String executeSearch(int width, int height, char[][] mapData, char[][] itemsData){
 
-        Node initialNode = new Node(width, height, itemsData, mapData, 0, -1, '\0');
+        MapData map = new MapData(width, height, mapData);
+
+        Node initialNode = new Node(itemsData, map, 0, -1, '\0');
         openList.add(initialNode);
         openListIdentifiers.add(initialNode.getIdentifier()); // Add the identifier to the openListIdentifiers set
 
@@ -29,12 +31,12 @@ public class Search {
 
             // DEBUG ===============================
             System.out.println("|Parent Node|");
-            currentNode.toStringMap();
+            currentNode.toStringMap(map);
             currentNode.toStringInfo();
             System.out.println("current node pulled from open list"); 
             // ======================================
 
-            ArrayList<Node> successors = currentNode.generateSuccessors(rules, currentNode);
+            ArrayList<Node> successors = currentNode.generateSuccessors(rules, currentNode, map);
 
             System.out.println("\n|successors generated|\n"); // DEBUG
 
@@ -44,11 +46,11 @@ public class Search {
 
                 // DEBUG ===============================
                 System.out.println("\n|successor node #" + (i+1) + "|");
-                currentSuccessor.toStringMap();
+                currentSuccessor.toStringMap(map);
                 // ======================================
 
                 // end if goal
-                if(currentSuccessor.isGoal()){
+                if(currentSuccessor.isGoal(map)){
                     actionList = backtrackPath(currentSuccessor, closedList);
                     return actionList;
                 }

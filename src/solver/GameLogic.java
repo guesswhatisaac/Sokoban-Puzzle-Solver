@@ -58,11 +58,10 @@ public class GameLogic {
     }
     
     // updates map and item data based on moveInput then constructs a valid successor node 
-    public Node updatedNode(char move, Node parentNode) {
+    public Node updatedNode(char move, Node parentNode, MapData map) {
 
         // clone itemData & mapData
-        char[][] clonedItemData = parentNode.getItemsData();
-        char[][] clonedMapData = parentNode.getMapData();
+        char[][] clonedItemData = parentNode.getItemsData(map);
 
         // get player's position // REVERSED x and y
         Position currentPosition = new Position(parentNode.getPlayer().getY(), parentNode.getPlayer().getX());
@@ -94,8 +93,7 @@ public class GameLogic {
         }
 
         // after updating items data, construct the node
-        Node updatedNode = new Node(parentNode.getWidth(), parentNode.getHeight(), clonedItemData, 
-                            clonedMapData, parentNode.getIdentifier(), parentNode.getGCost(), move);
+        Node updatedNode = new Node(clonedItemData, map, parentNode.getIdentifier(), parentNode.getGCost(), move);
 
         /*  DEBUG = POST GENERATION
         System.out.println("UPDATED MAP");
