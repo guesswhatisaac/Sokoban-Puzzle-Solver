@@ -27,36 +27,60 @@ public class DeadlockDetector {
 
         return false;
     }
-
     public boolean[][] simpleDeadlockDetector(GameLogic rules, MapData map) {
         boolean[][] visited = new boolean[map.getWidth()][map.getHeight()];
+        boolean[][] searched = new boolean[map.getWidth()][map.getHeight()];
         ArrayList<Position> targets = map.getTargets();
-
+    
         for (Position targetPos : targets) {
-            markReachable(visited, rules, map, targetPos.getX(), targetPos.getY());
+            System.out.println("target started");
+            markReachable(visited, rules, map, targetPos.getY(), targetPos.getX(), searched); 
         }
-
+    
         return visited;
     }
-
-    private void markReachable(boolean[][] visited, GameLogic rules, MapData map, int x, int y) {
-        if (!rules.isValidCrateMovement('l', x, y, map.getMapData()) &&
-            !rules.isValidCrateMovement('r', x, y, map.getMapData()) &&
-            !rules.isValidCrateMovement('u', x, y, map.getMapData()) && 
-            !rules.isValidCrateMovement('d', x, y, map.getMapData())) {
-                System.out.println("simple deadlock found");
+    
+    private void markReachable(boolean[][] visited, GameLogic rules, MapData map, int x, int y, boolean[][] searched) {
+        System.out.println("function x: " + x + " y: " + y);
+    
+        if (x >= 0 && y >= 0 && x < map.getWidth() && y < map.getHeight() && !searched[x][y]) {
+            System.out.println("valid x and y, x and y within map borders, placement not yet searched\n");
+    
+            searched[x][y] = true;
+    
+            if (!rules.isValidCrateMovement(y, x, map.getMapData())) { 
+                System.out.println("simple deadlock found at x: " + y + ", y: " + x + " invalid\n");
                 visited[x][y] = false;
-                return;
+            } else {
+                visited[x][y] = true;
+                System.out.println("visited and valid\n");
             }
-            
-        visited[x][y] = true;
-
-        markReachable(visited, rules, map, x - 1, y);
-        markReachable(visited, rules, map, x + 1, y);
-        markReachable(visited, rules, map, x, y - 1);
-        markReachable(visited, rules, map, x, y + 1);
+    
+            if (x - 1 > 0)
+                markReachable(visited, rules, map, y, x - 1, searched); 
+            else
+                System.out.println("Cannot move left. Out of bounds");
+    
+            if (x + 1 < map.getWidth())
+                markReachable(visited, rules, map, y, x + 1, searched); 
+            else
+                System.out.println("Cannot move right. Out of bounds");
+    
+            if (y - 1 > 0)
+                markReachable(visited, rules, map, y - 1, x, searched);
+            else
+                System.out.println("Cannot move up. Out of bounds");
+    
+            if (y + 1 < map.getHeight())
+                markReachable(visited, rules, map, y + 1, x, searched); 
+            else
+                System.out.println("Cannot move down. Out of bounds");
+    
+        } else {
+            System.out.println("border or searched already\n");
+        }
     }
-
+    
     private boolean freezeDeadlockDetector(Node node, GameLogic rules) {
 
         return false;

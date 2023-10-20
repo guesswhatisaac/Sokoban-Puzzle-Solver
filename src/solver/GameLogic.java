@@ -12,6 +12,18 @@ public class GameLogic {
     // for simple deadlock detection
     GameLogic(MapData map){
         notVisited = deadlockDetector.simpleDeadlockDetector(this, map);
+
+        for(int i = 0; i < map.getHeight(); i++){
+            for(int j = 0; j < map.getWidth(); j++){
+                if(notVisited[j][i] == false)
+                    System.out.print("f");
+                else
+                    System.out.print("t");
+            }
+            System.out.println();
+        }
+
+
     }
 
     public boolean isValidPlayerMovement(char move, MapData map, Node node){
@@ -28,20 +40,19 @@ public class GameLogic {
         char mapObject = mapData[playerClone.getX()][playerClone.getY()]; 
         char itemObject = itemsData[playerClone.getX()][playerClone.getY()];
 
-        if(mapObject == '#'){
+        if(notVisited[playerClone.getX()][playerClone.getY()]){
+            System.out.println("Deadlock detector says no. return false");
+        }
+        else if(mapObject == '#'){
             //System.out.print("wall detected. return false"); // DEBUG
             return false;
         } // if crate, also check if crate's movement is valid
         else if(itemObject == '$'){
-            if(!isValidCrateMovement(move, playerClone, mapData , itemsData) && notVisited[playerClone.getX()][playerClone.getY()]) {
+            System.out.println("checking if its not a valid crate movement\n");
+            if(!isValidCrateMovement(move, playerClone, mapData , itemsData)) {
                 System.out.print("crate found, its movement not valid. return false"); // DEBUG
                 return false;
             }
-            /* 
-            else if(deadlockDetector.isDeadlocked(node, this, map)){
-                System.out.print("crate found, its movement creates deadlock. return false"); // DEBUG
-                return false;
-            } */
         }
 
         //System.out.print("Move valid!");
@@ -60,34 +71,79 @@ public class GameLogic {
         char itemObject = itemsData[detector.getX()][detector.getY()];
 
         // Crate movement is not valid if blocked by a wall or another crate
-        if(mapObject == '#' && itemObject == '$'){
+        if(mapObject == '#' || itemObject == '$'){
             return false;
         }
     
-        //System.out.print("valid crate movement. "); // DEBUG
+        System.out.println("valid crate movement."); // DEBUG
 
         return true; 
 
     }
 
-    boolean isValidCrateMovement(char move, int x, int y, char[][] mapData){
+    boolean isValidCrateMovement(int x, int y, char[][] mapData) {
 
-        // REVERSED X AND Y
-        Position detector = new Position(y, x);
-
-        detector.updatePosition(move);
-
+        int cornerDeadlockCount = 0;
+    
+        // Print the current coordinates and mapObject
+        System.out.println("Coordinates (x, y): " + x + ", " + y);
         char mapObject = mapData[x][y];
+        System.out.println("Map Object: " + mapObject);
 
-        // Crate movement is not valid if blocked by a wall or another crate
         if(mapObject == '#'){
+            System.out.println("Evaluating wall, return false.");
             return false;
         }
+        else if(mapObject == '.'){
+            System.out.println("Evaluating target, return true");
+            return true;
+        }
     
-        //System.out.print("valid crate movement. "); // DEBUG
+        // Create and print detector objects
+        Position detectorUp = new Position(y, x);
+        detectorUp.updatePosition('u');
+        char mapObjectUp = mapData[detectorUp.getX()][detectorUp.getY()];
+        System.out.println("Map Object Up: " + mapObjectUp);
+    
+        Position detectorDown = new Position(y, x);
+        detectorDown.updatePosition('d');
+        char mapObjectDown = mapData[detectorDown.getX()][detectorDown.getY()];
+        System.out.println("Map Object Down: " + mapObjectDown);
+    
+        Position detectorRight = new Position(y, x);
+        detectorRight.updatePosition('r');
+        char mapObjectRight = mapData[detectorRight.getX()][detectorRight.getY()];
+        System.out.println("Map Object Right: " + mapObjectRight);
+    
+        Position detectorLeft = new Position(y, x);
+        detectorLeft.updatePosition('l');
+        char mapObjectLeft = mapData[detectorLeft.getX()][detectorLeft.getY()];
+        System.out.println("Map Object Left: " + mapObjectLeft);
+    
+        // Crate movement is not valid if blocked by a wall or another crate
 
-        return true; 
+        if (mapObjectUp == '#') {
+            cornerDeadlockCount++;
+            System.out.println("Deadlock up");
+        }
+        if (mapObjectDown == '#') {
+            cornerDeadlockCount++;
+            System.out.println("Deadlock down");
+        }
+        if (mapObjectLeft == '#') {
+            cornerDeadlockCount++;
+            System.out.println("Deadlock left");
+        }
+        if (mapObjectRight == '#') {
+            cornerDeadlockCount++;
+            System.out.println("Deadlock right");
+        }
+    
+        if (cornerDeadlockCount >= 2) {
+            return false;
+        }
 
+        return true;
     }
     
     // updates map and item data based on moveInput then constructs a valid successor node 
