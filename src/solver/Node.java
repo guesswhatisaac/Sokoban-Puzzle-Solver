@@ -2,6 +2,10 @@ package solver;
 
 import java.util.ArrayList;
 
+/* Notes
+ * - maybe instead of having to read new nodes over and over, i can just store positions 
+ */
+
 public class Node implements Comparable<Node> {
 
    private int parentIdentifier;
@@ -10,22 +14,30 @@ public class Node implements Comparable<Node> {
    private int gCost;
    private int hCost;
    private int fCost;
-
+   private boolean isGoal;
+   private int targetsFilled = 0;
    private char[][] itemsData;
    private Position player;
    private ArrayList<Position> crates;
 
-   public Node(char[][] itemsData, MapData map, int parentIdentifier, int previousGCost, char actionUsed) {
+   public Node(char[][] itemsData, MapData map, int parentIdentifier, int previousGCost, char actionUsed, GameLogic rules) {
       
       initializePositions(itemsData, map);
 
       this.itemsData = itemsData;
       this.parentIdentifier = parentIdentifier;
-      this.identifier = generateNodeIdentifier();
+      this.identifier = rules.generateIdentifier(itemsData);
       this.actionUsed = actionUsed;
       this.gCost = previousGCost + 1;
       this.hCost = generateNodeHeuristicValue(map);
       this.fCost = this.gCost + this.hCost;
+      
+      if(this.targetsFilled == map.getTargetCount())
+         isGoal = true;
+      else 
+         isGoal = false;
+
+
    }
 
    private void initializePositions(char[][] itemsData, MapData map) {
@@ -41,18 +53,19 @@ public class Node implements Comparable<Node> {
                   player = position;
                } else if (currentChar == '$') {
                   crates.add(position);
+
+                  // checks if node is goal; all targetPosition filled with crates 
+                  for(int k = 0; k < map.getTargets().size(); k++){
+                     if(position.isEqual(map.getTargets().get(k)))
+                        targetsFilled++;
+                  }
+
+
                }
+
          }
       }
-   }
-
-   private int generateNodeIdentifier() {
-      StringBuilder flattenedString = new StringBuilder();
-      for (char[] row : itemsData) {
-         flattenedString.append(row);
-      }
-      String hash = flattenedString.toString();
-      return hash.hashCode();
+      
    }
 
    private int generateNodeHeuristicValue(MapData map) {
@@ -89,7 +102,7 @@ public class Node implements Comparable<Node> {
       char[] movements = { 'u', 'd', 'l', 'r' };
 
       for(char move : movements) {
-         if (rules.isValidPlayerMovement(move, player, map.getMapData(), itemsData)) {
+         if (rules.isValidPlayerMovement(move, map, this) ) {
             Node updatedNode = rules.updatedNode(move, this, map);
             possibleSuccessors.add(updatedNode);
          }
@@ -97,26 +110,9 @@ public class Node implements Comparable<Node> {
       return possibleSuccessors;
    }
 
-   // Checks if all targets are filled then goal is reached
-   public boolean isGoal(MapData map){
-
-   int targetsFilled = 0;
-   ArrayList<Position> target = map.getTargets();
-
-   for(int i = 0; i < target.size(); i++){
-      for(int j = 0; j < crates.size(); j++){
-         if(target.get(i).isEqual(crates.get(j))){
-            targetsFilled++;
-            break;
-         }
-      }
+   public boolean isGoal(){
+      return this.isGoal;
    }
-
-   if(targetsFilled == target.size())
-      return true;
-   
-   return false;
-}
 
     @Override
    public int compareTo(Node otherNode) {
@@ -186,6 +182,5 @@ public class Node implements Comparable<Node> {
    public ArrayList<Position> getCrates() {
         return crates;
     }
-
 
 }
