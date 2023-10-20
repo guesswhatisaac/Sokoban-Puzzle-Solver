@@ -7,9 +7,11 @@ public class MapData {
     private char[][] mapData;
     private ArrayList<Position> wall = new ArrayList<>();
     private ArrayList<Position> target = new ArrayList<>();
+    private int targetCount = 0;
     private int width;
     private int height;
 
+ 
     // reads mapData[][] and converts elements to Positions 
     public MapData(int width, int height, char[][] mapData) {
         this.width = width;
@@ -26,6 +28,7 @@ public class MapData {
                     wall.add(position);
                 } else if (mapChar == '.') {
                     target.add(position);
+                    targetCount++;
                 }
             }
         }
@@ -50,4 +53,9 @@ public class MapData {
     public int getWidth() {
         return width;
     }
+
+    public int getTargetCount(){
+        return this.targetCount;
+    }
+
 }

@@ -14,7 +14,8 @@ public class Node implements Comparable<Node> {
    private int gCost;
    private int hCost;
    private int fCost;
-
+   private boolean isGoal;
+   private int targetsFilled = 0;
    private char[][] itemsData;
    private Position player;
    private ArrayList<Position> crates;
@@ -30,6 +31,13 @@ public class Node implements Comparable<Node> {
       this.gCost = previousGCost + 1;
       this.hCost = generateNodeHeuristicValue(map);
       this.fCost = this.gCost + this.hCost;
+      
+      if(this.targetsFilled == map.getTargetCount())
+         isGoal = true;
+      else 
+         isGoal = false;
+
+
    }
 
    private void initializePositions(char[][] itemsData, MapData map) {
@@ -45,7 +53,16 @@ public class Node implements Comparable<Node> {
                   player = position;
                } else if (currentChar == '$') {
                   crates.add(position);
+
+                  // checks if node is goal; all targetPosition filled with crates 
+                  for(int k = 0; k < map.getTargets().size(); k++){
+                     if(position.isEqual(map.getTargets().get(k)))
+                        targetsFilled++;
+                  }
+
+
                }
+
          }
       }
       
@@ -85,7 +102,7 @@ public class Node implements Comparable<Node> {
       char[] movements = { 'u', 'd', 'l', 'r' };
 
       for(char move : movements) {
-         if (rules.isValidPlayerMovement(move, map, this)) {
+         if (rules.isValidPlayerMovement(move, map, this) ) {
             Node updatedNode = rules.updatedNode(move, this, map);
             possibleSuccessors.add(updatedNode);
          }
@@ -93,26 +110,9 @@ public class Node implements Comparable<Node> {
       return possibleSuccessors;
    }
 
-   // Checks if all targets are filled then goal is reached
-   public boolean isGoal(MapData map){
-
-   int targetsFilled = 0;
-   ArrayList<Position> target = map.getTargets();
-
-   for(int i = 0; i < target.size(); i++){
-      for(int j = 0; j < crates.size(); j++){
-         if(target.get(i).isEqual(crates.get(j))){
-            targetsFilled++;
-            break;
-         }
-      }
+   public boolean isGoal(){
+      return this.isGoal;
    }
-
-   if(targetsFilled == target.size())
-      return true;
-   
-   return false;
-}
 
     @Override
    public int compareTo(Node otherNode) {
@@ -182,6 +182,5 @@ public class Node implements Comparable<Node> {
    public ArrayList<Position> getCrates() {
         return crates;
     }
-
 
 }

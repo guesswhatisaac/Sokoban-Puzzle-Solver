@@ -15,12 +15,13 @@ public class Search {
     private HashSet<Integer> openListIdentifiers = new HashSet<>();
     private ArrayList<Node> closedList = new ArrayList<>();
     private HashSet<Integer> closedListIdentifiers = new HashSet<>();
-    private GameLogic rules = new GameLogic();
+    private GameLogic rules;
     private String actionList;
 
     public String executeSearch(int width, int height, char[][] mapData, char[][] itemsData) {
 
         MapData map = new MapData(width, height, mapData);
+        rules = new GameLogic(map);
 
         Node initialNode = new Node(itemsData, map, 0, -1, '\0', rules);
         openList.add(initialNode);
@@ -39,7 +40,7 @@ public class Search {
 
             ArrayList<Node> successors = currentNode.generateSuccessors(rules, map);
         
-            if (currentNode.isGoal(map)) {
+            if (currentNode.isGoal()) {
                 actionList = backtrackPath(currentNode, closedList, map);
                 currentNode.toStringMap(map);
                 currentNode.toStringInfo();

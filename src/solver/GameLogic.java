@@ -2,13 +2,17 @@ package solver;
 
 /* Notes
  * - updatedNodes does not check if movement is valid & naively updates, since the validators do the checking instead
- * - all methods may not be working properly
- * - mapData cloned; probably not needed since its constant
  */
 
 public class GameLogic {
 
-    DeadlockDetector deadlockDetector = new DeadlockDetector();
+    private boolean[][] notVisited;
+    private DeadlockDetector deadlockDetector = new DeadlockDetector();
+
+    // for simple deadlock detection
+    GameLogic(MapData map){
+        notVisited = deadlockDetector.simpleDeadlockDetector(this, map);
+    }
 
     public boolean isValidPlayerMovement(char move, MapData map, Node node){
 
@@ -29,15 +33,15 @@ public class GameLogic {
             return false;
         } // if crate, also check if crate's movement is valid
         else if(itemObject == '$'){
-            if(!isValidCrateMovement(move, playerClone, mapData , itemsData)) {
-                //System.out.print("crate found, its movement not valid. return false"); // DEBUG
+            if(!isValidCrateMovement(move, playerClone, mapData , itemsData) && notVisited[playerClone.getX()][playerClone.getY()]) {
+                System.out.print("crate found, its movement not valid. return false"); // DEBUG
                 return false;
             }
-            /*
-            else if(deadlockDetector.isDeadlocked(node, this)){
+            /* 
+            else if(deadlockDetector.isDeadlocked(node, this, map)){
                 System.out.print("crate found, its movement creates deadlock. return false"); // DEBUG
                 return false;
-            }*/
+            } */
         }
 
         //System.out.print("Move valid!");
@@ -56,7 +60,27 @@ public class GameLogic {
         char itemObject = itemsData[detector.getX()][detector.getY()];
 
         // Crate movement is not valid if blocked by a wall or another crate
-        if(mapObject == '#' || itemObject == '$'){
+        if(mapObject == '#' && itemObject == '$'){
+            return false;
+        }
+    
+        //System.out.print("valid crate movement. "); // DEBUG
+
+        return true; 
+
+    }
+
+    boolean isValidCrateMovement(char move, int x, int y, char[][] mapData){
+
+        // REVERSED X AND Y
+        Position detector = new Position(y, x);
+
+        detector.updatePosition(move);
+
+        char mapObject = mapData[x][y];
+
+        // Crate movement is not valid if blocked by a wall or another crate
+        if(mapObject == '#'){
             return false;
         }
     
