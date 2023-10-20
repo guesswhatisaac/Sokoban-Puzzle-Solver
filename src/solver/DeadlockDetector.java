@@ -41,7 +41,7 @@ public class DeadlockDetector {
     }
     
     private void markReachable(boolean[][] visited, GameLogic rules, MapData map, int x, int y, boolean[][] searched) {
-        //System.out.println("function x: " + x + " y: " + y);
+        // System.out.println("function x: " + x + " y: " + y);
 
         // if within borders and map position not yet evaluated,
         if (x >= 0 && y >= 0 && x < map.getWidth() && y < map.getHeight() && !searched[x][y]) {
@@ -50,21 +50,14 @@ public class DeadlockDetector {
     
             if (!rules.isValidCrateMovement(x, y, map)) // checks for deadlocks,
                 visited[x][y] = false; // if found; invalid
-            else 
+            else
                 visited[x][y] = true; // none found; valid
             
             // check for possible reachable positions
-            if (x - 1 > 0)
-                markReachable(visited, rules, map, y, x - 1, searched); 
-    
-            if (x + 1 < map.getWidth())
-                markReachable(visited, rules, map, y, x + 1, searched); 
-            
-            if (y - 1 > 0)
-                markReachable(visited, rules, map, y - 1, x, searched);
-
-            if (y + 1 < map.getHeight())
-                markReachable(visited, rules, map, y + 1, x, searched); 
+            markReachable(visited, rules, map, x - 1, y, searched);
+            markReachable(visited, rules, map, x + 1, y, searched);
+            markReachable(visited, rules, map, x, y - 1, searched);
+            markReachable(visited, rules, map, x, y + 1, searched);
         }
     }
     

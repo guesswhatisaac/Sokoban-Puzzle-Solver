@@ -44,6 +44,7 @@ public class Search {
                 actionList = backtrackPath(currentNode, closedList, map);
                 currentNode.toStringMap(map);
                 currentNode.toStringInfo();
+                System.out.println("Current Node isGoal, return ActionList");
                 return actionList;
             }
 
@@ -71,36 +72,31 @@ public class Search {
             //System.out.println("node Added");
         }
 
+        System.out.println("A* Finished. ActionList returned.");
         return actionList;
     }
 
 
     private boolean evaluateSuccessor(Node successorNode){
         int successorIdentifier = successorNode.getIdentifier();
-        boolean shouldAdd = true;
-        PriorityQueue<Node> openListClone = new PriorityQueue<Node>(openList);
 
-        // Check if the successor is already in the open list with a lower fCost
+        // Check if the successor is already in the open list (does not check for f cost)
         if(openListIdentifiers.contains(successorIdentifier)){
-            for(int i = 0; i < openListClone.size(); i++){
-                Node nodeCopy = openListClone.poll();
-                if(nodeCopy.getIdentifier() == successorNode.getIdentifier())
-                    shouldAdd = false;
-            }
+            return false;
         }
 
         // Check if the successor is already in the closed list with a lower fCost
-        if(shouldAdd && closedListIdentifiers.contains(successorIdentifier)){
+        if(closedListIdentifiers.contains(successorIdentifier)){
             for (Node closedListNode : closedList) {
                 if (closedListNode.getIdentifier() == successorIdentifier && closedListNode.getFCost() < successorNode.getFCost()) {
-                    shouldAdd = false;
-                    break;
+                    return false;
                 }
             }
         }
-
-        return shouldAdd;
+        
+        return true;
     }
+
 
     public String backtrackPath(Node goalNode, ArrayList<Node> closedList, MapData map) {
         StringBuilder actions = new StringBuilder();
@@ -119,6 +115,7 @@ public class Search {
             currentNode = parent;
         }
     
+        System.out.println("A* Search Finished");
         return actions.toString();
     }
 

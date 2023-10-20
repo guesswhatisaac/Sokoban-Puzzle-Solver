@@ -50,7 +50,7 @@ public class GameLogic {
         if(mapObject == '#'){
             //System.out.print("wall detected. return false"); // DEBUG
             return false;
-        } // if crate, also check if crate's movement is valid
+        }  // if crate, also check if crate's movement is valid
         else if(itemObject == '$'){
             //System.out.println("checking if its not a valid crate movement\n");
             if(!isValidCrateMovement(move, playerClone, mapData , itemsData)) {
@@ -64,27 +64,33 @@ public class GameLogic {
 
     }
 
-    private boolean isValidCrateMovement(char move, Position crate, char[][] mapData, char[][] itemsData){
+    private boolean isValidCrateMovement(char move, Position crate, char[][] mapData, char[][] itemsData) {
 
         // REVERSED X AND Y
         Position detector = new Position(crate.getY(), crate.getX());
-
+    
         detector.updatePosition(move);
-
+    
         char mapObject = mapData[detector.getX()][detector.getY()];
         char itemObject = itemsData[detector.getX()][detector.getY()];
-
+    
         // Crate movement is not valid if blocked by a wall or another crate
-        if(mapObject == '#' || itemObject == '$'){
+        if (mapObject == '#') {
+            //System.out.println("Blocked by a wall. Return false.");
+            return false;
+        } else if (itemObject == '$') {
+            //System.out.println("Blocked by another crate. Return false.");
+            return false;
+        } else if (!notVisited[detector.getY()][detector.getX()]) { // add do not push box into deadlock unless it has target
+            //System.out.println("Do not push box to (" + detector.getY() + ", " + detector.getX() + "). Return false.");
             return false;
         }
     
-        //System.out.println("valid crate movement."); // DEBUG
-
-        return true; 
-
+        //sSystem.out.println("Valid crate movement."); // DEBUG
+    
+        return true;
     }
-
+    
     public boolean isValidCrateMovement(int x, int y, MapData map) {
 
         int cornerDeadlockCount = 0;
@@ -99,6 +105,8 @@ public class GameLogic {
 
         if(mapObject == '#')
             return false;
+        
+           
         else if(mapObject == '.')
             return true;
         
@@ -124,24 +132,28 @@ public class GameLogic {
         char mapObjectLeft = map.getMapData()[detectorLeft.getX()][detectorLeft.getY()];
         //System.out.println("Map Object Left: " + mapObjectLeft);
 
-        /*
+        
         boolean isTunnel = checkTunnel(x, y, map);
         if (isTunnel) 
             return true;
-        */
+    
         // Crate movement is not valid if blocked by a wall or another crate
 
-        if (mapObjectUp == '#') 
+        if (mapObjectUp == '#') {
             cornerDeadlockCount++;
+        }
 
-        if (mapObjectDown == '#') 
+        if (mapObjectDown == '#') {
             cornerDeadlockCount++;
+        }
 
-        if (mapObjectLeft == '#') 
+        if (mapObjectLeft == '#') {
             cornerDeadlockCount++;
+        }
 
-        if (mapObjectRight == '#') 
+        if (mapObjectRight == '#') {
             cornerDeadlockCount++;
+        }
 
     
         if (cornerDeadlockCount >= 2) 
@@ -184,29 +196,10 @@ public class GameLogic {
             System.out.println("Checking for tunnel");
             while (mapObjectLeft != '#') {
                 detectorLeft.updatePosition('l');
+                System.out.println("moving left");
                 mapObjectLeft = map.getMapData()[detectorLeft.getX()][detectorLeft.getY()];
             }   
-            Position currentPosition = new Position(detectorLeft.getY(), detectorLeft.getX());
-
-            detectorDown = currentPosition;
-            detectorDown.updatePosition('d');
-            mapObjectDown = map.getMapData()[detectorDown.getX()][detectorDown.getY()];
-
-            detectorUp = currentPosition;
-            detectorUp.updatePosition('r');
-            mapObjectUp = map.getMapData()[detectorUp.getX()][detectorUp.getY()];
-
-            if (mapObjectDown != '#' || mapObjectUp != '#')
-                return true;
-        }
-
-        else if (mapObjectDown == '#' && mapObjectUp == '#' && mapObjectRight == ' ') {
-            System.out.println("Checking for tunnel");
-            while (mapObjectRight != '#') {
-                detectorRight.updatePosition('r');
-                mapObjectRight = map.getMapData()[detectorRight.getX()][detectorRight.getY()];
-            }   
-            Position currentPosition = new Position(detectorRight.getY(), detectorRight.getX());
+            Position currentPosition = new Position(detectorLeft.getY() + 1, detectorLeft.getX());
 
             detectorDown = currentPosition;
             detectorDown.updatePosition('d');
@@ -216,53 +209,110 @@ public class GameLogic {
             detectorUp.updatePosition('u');
             mapObjectUp = map.getMapData()[detectorUp.getX()][detectorUp.getY()];
 
-            if (mapObjectDown != '#' || mapObjectUp != '#')
+            System.out.println("coordinates (x, y): " + detectorRight.getX() + ", " + detectorRight.getY() + " right: " + mapObjectRight);
+            System.out.println("coordinates (x, y): " + detectorLeft.getX() + ", " + detectorLeft.getY() + " left: " + mapObjectLeft);
+            System.out.println("coordinates (x, y): " + detectorDown.getX() + ", " + detectorDown.getY() + " down: " + mapObjectDown);
+            System.out.println("coordinates (x, y): " + detectorRight.getX() + ", " + detectorRight.getY() + " up: " + mapObjectUp);
+
+            if (mapObjectDown != '#' || mapObjectUp != '#'){
+                System.out.println("tunnel found");
                 return true;
+            }
+        }
+
+        else if (mapObjectDown == '#' && mapObjectUp == '#' && mapObjectRight == ' ') {
+            System.out.println("Checking for tunnel");
+            while (mapObjectRight != '#') {
+                detectorRight.updatePosition('r');
+                System.out.println("moving right");
+                mapObjectRight = map.getMapData()[detectorRight.getX()][detectorRight.getY()];
+            }   
+            Position currentPosition = new Position(detectorRight.getY() - 1, detectorRight.getX());
+
+            detectorDown = currentPosition;
+            detectorDown.updatePosition('d');
+            mapObjectDown = map.getMapData()[detectorDown.getX()][detectorDown.getY()];
+
+            detectorUp = currentPosition;
+            detectorUp.updatePosition('u');
+            mapObjectUp = map.getMapData()[detectorUp.getX()][detectorUp.getY()];
+
+           
+            System.out.println("coordinates (x, y): " + detectorRight.getX() + ", " + detectorRight.getY() + " right: " + mapObjectRight);
+            System.out.println("coordinates (x, y): " + detectorLeft.getX() + ", " + detectorLeft.getY() + " left: " + mapObjectLeft);
+            System.out.println("coordinates (x, y): " + detectorDown.getX() + ", " + detectorDown.getY() + " down: " + mapObjectDown);
+            System.out.println("coordinates (x, y): " + detectorRight.getX() + ", " + detectorRight.getY() + " up: " + mapObjectUp);
+        
+            
+            if (mapObjectDown != '#' || mapObjectUp != '#') {
+                System.out.println("tunnel found");
+                return true;
+            }
         }
 
         else if (mapObjectLeft == '#' && mapObjectRight == '#' && mapObjectDown == ' ') {
             System.out.println("Checking for tunnel");
             while (mapObjectDown != '#') {
                 detectorDown.updatePosition('d');
-                mapObjectDown = map.getMapData()[detectorDown.getY()][detectorDown.getX()];
+                System.out.println("moving down");
+                mapObjectDown = map.getMapData()[detectorDown.getX()][detectorDown.getY()];
             }   
-            Position currentPosition = new Position(detectorDown.getX(), detectorDown.getY());
+            Position currentPosition = new Position(detectorDown.getY(), detectorDown.getX() - 1);
 
             detectorRight = currentPosition;
             detectorRight.updatePosition('r');
-            mapObjectRight = map.getMapData()[detectorRight.getX()][detectorRight.getY()];
 
             detectorLeft = currentPosition;
             detectorLeft.updatePosition('l');
+            
+            System.out.println("coordinates (x, y): " + detectorRight.getX() + ", " + detectorRight.getY() + " right: " + mapObjectRight);
+            System.out.println("coordinates (x, y): " + detectorLeft.getX() + ", " + detectorLeft.getY() + " left: " + mapObjectLeft);
+            System.out.println("coordinates (x, y): " + detectorDown.getX() + ", " + detectorDown.getY() + " down: " + mapObjectDown);
+            System.out.println("coordinates (x, y): " + detectorRight.getX() + ", " + detectorRight.getY() + " up: " + mapObjectUp);
+            
+            
+            mapObjectRight = map.getMapData()[detectorRight.getX()][detectorRight.getY()];
             mapObjectLeft = map.getMapData()[detectorLeft.getX()][detectorLeft.getY()];
 
-            if (mapObjectRight != '#' || mapObjectLeft != '#')
+            if (mapObjectRight != '#' || mapObjectLeft != '#'){
+                System.out.println("tunnel found");
                 return true;
+            }
         }
 
         else if (mapObjectLeft == '#' && mapObjectRight == '#' && mapObjectUp == ' ') {
             System.out.println("Checking for tunnel");
             while (mapObjectUp != '#') {
                 detectorUp.updatePosition('u');
-                mapObjectUp = map.getMapData()[detectorUp.getY()][detectorUp.getX()];
+                System.out.println("moving up");
+                mapObjectUp = map.getMapData()[detectorUp.getX()][detectorUp.getY()];
             }   
-            Position currentPosition = new Position(detectorUp.getX(), detectorUp.getY());
+            Position currentPosition = new Position(detectorUp.getY(), detectorUp.getX() + 1);
 
             detectorRight = currentPosition;
             detectorRight.updatePosition('r');
-            mapObjectRight = map.getMapData()[detectorRight.getX()][detectorRight.getY()];
+
+            if (detectorRight.getX() < map.getWidth())
+                mapObjectRight = map.getMapData()[detectorRight.getX()][detectorRight.getY()];
 
             detectorLeft = currentPosition;
             detectorLeft.updatePosition('l');
             mapObjectLeft = map.getMapData()[detectorLeft.getX()][detectorLeft.getY()];
 
-            if (mapObjectRight != '#' || mapObjectLeft != '#')
+            System.out.println("coordinates (x, y): " + detectorRight.getX() + ", " + detectorRight.getY() + " right: " + mapObjectRight);
+            System.out.println("coordinates (x, y): " + detectorLeft.getX() + ", " + detectorLeft.getY() + " left: " + mapObjectLeft);
+            System.out.println("coordinates (x, y): " + detectorDown.getX() + ", " + detectorDown.getY() + " down: " + mapObjectDown);
+            System.out.println("coordinates (x, y): " + detectorRight.getX() + ", " + detectorRight.getY() + " up: " + mapObjectUp);
+
+            if (mapObjectRight != '#' || mapObjectLeft != '#'){
+                System.out.println("tunnel found");
                 return true;
+            }
         }
 
         return false;
     }
-    
+
     // updates map and item data based on moveInput then constructs a valid successor node 
     public Node updatedNode(char move, Node parentNode, MapData map) {
 
